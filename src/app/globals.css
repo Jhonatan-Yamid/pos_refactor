@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * DESIGN TOKENS — la única fuente de verdad para colores en toda la app.
+ * Para cambiar un color en TODA la aplicación (botones, tarjetas, bordes,
+ * estados de éxito/error, etc.) solo se edita el valor aquí. Los
+ * componentes usan clases de Tailwind (bg-surface, text-primary,
+ * border-border, etc.) que apuntan a estas variables — nunca hardcodean
+ * el color directamente.
+ */
+:root {
+  --color-canvas: #030712;         /* fondo general (antes gray-950) */
+  --color-surface: #111827;        /* tarjetas, inputs, modales (antes gray-900) */
+  --color-surface-hover: #1f2937;  /* hover de superficies (antes gray-800) */
+  --color-surface-raised: #1f2937; /* elementos elevados dentro de una tarjeta */
+
+  --color-border: #1f2937;         /* bordes por defecto (antes gray-800) */
+  --color-border-hover: #374151;   /* bordes en hover (antes gray-700) */
+
+  --color-text: #e2e8f0;           /* texto principal (antes slate-200) */
+  --color-text-muted: #9ca3af;     /* texto secundario (antes gray-400) */
+  --color-text-subtle: #6b7280;    /* texto terciario (antes gray-500) */
+
+  --color-primary: #2563eb;        /* acción principal (antes blue-600) */
+  --color-primary-hover: #1d4ed8;
+
+  --color-success: #34d399;        /* estados positivos (antes emerald-400/600) */
+  --color-success-hover: #10b981;
+  --color-success-soft: rgba(16, 185, 129, 0.15);
+
+  --color-danger: #f87171;         /* estados destructivos (antes red-400) */
+  --color-danger-hover: #dc2626;
+  --color-danger-soft: rgba(220, 38, 38, 0.15);
+}
+
+body {
+  @apply bg-canvas text-content;
+}
+
+.fade-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, #030712 112%);
+  pointer-events: none; /* Ensure the overlay does not block interactions */
+}
+.fade-overlay-sup {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 30%;
+  background: linear-gradient(to bottom, rgba(2, 7, 18, 1) 0%, transparent 100%);
+}
+
+.footer {
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+}
+
+body {
+  margin-bottom: 150px; /* Ajusta este valor según la altura de tu footer */
+}
+
