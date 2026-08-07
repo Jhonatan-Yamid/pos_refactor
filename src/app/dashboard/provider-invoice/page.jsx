@@ -21,6 +21,8 @@ export default function ProviderInvoicePage() {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 16));
+  const [imageFile, setImageFile] = useState(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
@@ -35,10 +37,25 @@ export default function ProviderInvoicePage() {
     setAmount("");
     setDescription("");
     setDate(new Date().toISOString().slice(0, 16));
+    setImageFile(null);
+    setFileInputKey((k) => k + 1);
+  };
+
+  const uploadImage = async () => {
+    if (!imageFile) return null;
+    const formData = new FormData();
+    formData.append("file", imageFile);
+    const res = await fetch("/api/upload", { method: "POST", body: formData });
+    const data = await res.json();
+    if (!res.ok || !data?.url) {
+      throw new Error(data?.error || "No se pudo subir la imagen. Intenta de nuevo.");
+    }
+    return data.url;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!providerId) {
       setFeedback({ type: "error", text: "Selecciona un proveedor." });
       return;
@@ -51,12 +68,13 @@ export default function ProviderInvoicePage() {
     setIsSubmitting(true);
     setFeedback(null);
     try {
+      const imageUrl = imageFile ? await uploadImage() : null;
       await apiPost("/api/provider-movements", {
         providerId: parseInt(providerId, 10),
         type: "INVOICE",
         amount,
         description,
-        imageUrl: null,
+        imageUrl,
         createdAt: date,
       });
       setFeedback({ type: "success", text: "Factura registrada correctamente." });
@@ -110,6 +128,17 @@ export default function ProviderInvoicePage() {
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
+
+          <div>
+            <label className="block text-sm text-content-muted mb-1">Soporte (opcional)</label>
+            <input
+              key={fileInputKey}
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+              className="w-full text-sm"
+            />
+          </div>
 
           {feedback && (
             <div

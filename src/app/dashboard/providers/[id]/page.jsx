@@ -17,6 +17,9 @@ export default function ProviderDetail() {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalError, setModalError] = useState(null);
   const [selectedMovement, setSelectedMovement] = useState(null);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 16));
   const [isImageOpen, setIsImageOpen] = useState(false);
@@ -48,26 +51,48 @@ export default function ProviderDetail() {
     formData.append("file", imageFile);
     const res = await fetch("/api/upload", { method: "POST", body: formData });
     const data = await res.json();
+    if (!res.ok || !data?.url) {
+      throw new Error(data?.error || "No se pudo subir la imagen. Intenta de nuevo.");
+    }
     return data.url;
   };
 
+  // Antes esto no tenía try/catch ni protección contra doble clic: si algo
+  // fallaba (subida de imagen o guardado), quedaba en silencio y el
+  // usuario solo veía que "no pasó nada". Ahora se avisa el error real y
+  // no se puede disparar dos veces mientras una petición está en curso.
   const createMovement = async () => {
-    const imageUrl = imageFile ? await uploadImage() : null;
+    if (isSubmitting) return;
+    if (!amount || Number(amount) <= 0) {
+      setModalError("Ingresa un monto válido.");
+      return;
+    }
 
-    await apiPost("/api/provider-movements", {
-      providerId: parseInt(id),
-      type: movementType,
-      amount,
-      description,
-      imageUrl,
-      createdAt: date,
-    });
+    setIsSubmitting(true);
+    setModalError(null);
+    try {
+      const imageUrl = imageFile ? await uploadImage() : null;
 
-    setIsModalOpen(false);
-    setAmount("");
-    setDescription("");
-    setImageFile(null);
-    window.location.reload();
+      await apiPost("/api/provider-movements", {
+        providerId: parseInt(id),
+        type: movementType,
+        amount,
+        description,
+        imageUrl,
+        createdAt: date,
+      });
+
+      setIsModalOpen(false);
+      setAmount("");
+      setDescription("");
+      setImageFile(null);
+      setFileInputKey((k) => k + 1);
+      window.location.reload();
+    } catch (error) {
+      setModalError(error.message || "No se pudo guardar el movimiento.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const deleteMovement = async (movId) => {
@@ -93,6 +118,7 @@ export default function ProviderDetail() {
           className="flex-col p-4"
           onClick={() => {
             setMovementType("INVOICE");
+            setModalError(null);
             setIsModalOpen(true);
           }}
         >
@@ -106,6 +132,7 @@ export default function ProviderDetail() {
           className="flex-col p-4"
           onClick={() => {
             setMovementType("PAYMENT");
+            setModalError(null);
             setIsModalOpen(true);
           }}
         >
@@ -156,7 +183,10 @@ export default function ProviderDetail() {
 
       <Modal
         open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setModalError(null);
+        }}
         title={movementType === "INVOICE" ? "Nueva Factura" : "Nuevo Pago"}
         maxWidth="max-w-md"
       >
@@ -168,14 +198,23 @@ export default function ProviderDetail() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
-          <input type="file" onChange={(e) => setImageFile(e.target.files[0])} className="w-full text-sm" />
+          <input
+            key={fileInputKey}
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImageFile(e.target.files[0])}
+            className="w-full text-sm"
+          />
+          {modalError && <p className="text-danger text-sm">{modalError}</p>}
         </div>
 
         <div className="flex justify-end gap-3 mt-4">
-          <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
+          <Button variant="ghost" onClick={() => setIsModalOpen(false)} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button onClick={createMovement}>Guardar</Button>
+          <Button onClick={createMovement} disabled={isSubmitting}>
+            {isSubmitting ? "Guardando..." : "Guardar"}
+          </Button>
         </div>
       </Modal>
 

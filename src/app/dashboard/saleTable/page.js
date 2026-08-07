@@ -29,14 +29,15 @@ function DailySales() {
     const [discountPercentInput, setDiscountPercentInput] = useState("0");
     const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
 
-    // F7: rango de fechas para "Ventas Anteriores" (por defecto, últimos 7
-    // días) — evita traer todo el histórico.
+    // F7: rango de fechas para "Ventas Anteriores". A propósito NO se
+    // autocompleta ni se busca solo al entrar a la pestaña — mientras no se
+    // presione "Buscar" no se le pide nada al servidor, para no hacer
+    // consultas que no se van a usar en ese momento.
     const todayIso = new Date().toISOString().slice(0, 10);
-    const sevenDaysAgoIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .slice(0, 10);
-    const [pastStartDate, setPastStartDate] = useState(sevenDaysAgoIso);
-    const [pastEndDate, setPastEndDate] = useState(todayIso);
+    const [pastStartDate, setPastStartDate] = useState("");
+    const [pastEndDate, setPastEndDate] = useState("");
+    const [hasSearchedPast, setHasSearchedPast] = useState(false);
+    const [loadingPastSales, setLoadingPastSales] = useState(false);
 
     // Estados para la funcionalidad de transferencias
     const [showTransfers, setShowTransfers] = useState(false);
@@ -108,6 +109,7 @@ function DailySales() {
     }, []);
 
     const fetchPastSales = useCallback(async (start, end) => {
+        setLoadingPastSales(true);
         try {
             const startDate = new Date(`${start}T00:00:00`);
             const endDate = new Date(`${end}T23:59:59.999`);
@@ -118,25 +120,31 @@ function DailySales() {
             setPastSales(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Error al obtener las ventas anteriores:", error);
+        } finally {
+            setLoadingPastSales(false);
         }
     }, []);
 
+    // Solo se dispara cuando el usuario presiona "Buscar" con un rango
+    // válido — ninguna consulta automática al entrar a la pestaña.
+    const handleSearchPastSales = () => {
+        if (!pastStartDate || !pastEndDate) return;
+        setHasSearchedPast(true);
+        fetchPastSales(pastStartDate, pastEndDate);
+    };
+
     const fetchSalesData = useCallback(async () => {
         await fetchTodaySales();
-        if (activeTab === "past") {
+        // Solo se refresca "anteriores" si el usuario ya había hecho una
+        // búsqueda — si no, no tiene sentido pedirle nada al servidor.
+        if (hasSearchedPast && pastStartDate && pastEndDate) {
             await fetchPastSales(pastStartDate, pastEndDate);
         }
-    }, [fetchTodaySales, fetchPastSales, activeTab, pastStartDate, pastEndDate]);
+    }, [fetchTodaySales, fetchPastSales, hasSearchedPast, pastStartDate, pastEndDate]);
 
     useEffect(() => {
         fetchTodaySales();
     }, [fetchTodaySales]);
-
-    useEffect(() => {
-        if (activeTab === "past") {
-            fetchPastSales(pastStartDate, pastEndDate);
-        }
-    }, [activeTab, pastStartDate, pastEndDate, fetchPastSales]);
 
     // `sales` combina hoy + anteriores, solo para poder buscar la venta
     // seleccionada en el modal de vista previa sin importar de qué lista vino.
@@ -264,26 +272,31 @@ function DailySales() {
     };
 
     // F5 + F6: al marcar una venta "en mesa" como pagada, se confirma el tipo
-    // de pago (y, si aplica, el descuento) antes de guardar.
+    // de pago (y, si aplica, el descuento) antes de guardar. El monto en
+    // efectivo solo se pide en "mixto" — en "efectivo" se infiere 100% del
+    // total, en "transferencia" se infiere 0.
     const handleConfirmPayment = async (sale, subtotal) => {
         const discountPct = Math.min(100, Math.max(0, Number(discountPercentInput) || 0));
         const finalTotal = subtotal * (1 - discountPct / 100);
-        const cash = Number(cashAmountInput) || 0;
+        const mixedCash = Number(cashAmountInput) || 0;
 
-        if (paymentType === "mixto" && cash <= 0) {
+        if (paymentType === "mixto" && mixedCash <= 0) {
             alert("Ingresa el monto pagado en efectivo para un pago mixto.");
             return;
         }
-        if (paymentType === "mixto" && cash >= finalTotal) {
+        if (paymentType === "mixto" && mixedCash >= finalTotal) {
             alert("El monto en efectivo no puede ser mayor o igual al total para un pago mixto (usa 'Efectivo').");
             return;
         }
+
+        const cashAmount =
+            paymentType === "efectivo" ? finalTotal : paymentType === "mixto" ? mixedCash : 0;
 
         setIsConfirmingPayment(true);
         try {
             await handleStatusAdvance(sale, {
                 paymentType,
-                cashAmount: paymentType === "transferencia" ? 0 : cash,
+                cashAmount,
                 discountPercent: discountPct,
                 totalAmount: finalTotal,
             });
@@ -581,15 +594,15 @@ function DailySales() {
                 </>
             ) : (
                 <>
-                    {/* F7: selector de rango de fecha — antes esta pestaña traía todo
-                        el histórico de una vez. */}
+                    {/* F7: selector de rango de fecha. No se consulta nada al servidor
+                        hasta que el usuario presione "Buscar" con un rango definido. */}
                     <div className="flex flex-wrap items-end gap-3 mb-4 bg-gray-900 border border-gray-800 rounded-md p-3">
                         <div>
                             <label className="block text-xs text-gray-400 mb-1">Desde</label>
                             <input
                                 type="date"
                                 value={pastStartDate}
-                                max={pastEndDate}
+                                max={pastEndDate || todayIso}
                                 onChange={(e) => setPastStartDate(e.target.value)}
                                 className="bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-slate-200 text-sm"
                             />
@@ -605,11 +618,26 @@ function DailySales() {
                                 className="bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-slate-200 text-sm"
                             />
                         </div>
-                        <span className="text-xs text-gray-500">
-                            {pastSales.length} venta{pastSales.length !== 1 ? "s" : ""} en el rango
-                        </span>
+                        <button
+                            onClick={handleSearchPastSales}
+                            disabled={!pastStartDate || !pastEndDate || loadingPastSales}
+                            className="bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white text-sm px-4 py-1.5 rounded-md"
+                        >
+                            {loadingPastSales ? "Buscando..." : "Buscar"}
+                        </button>
+                        {hasSearchedPast && !loadingPastSales && (
+                            <span className="text-xs text-gray-500">
+                                {pastSales.length} venta{pastSales.length !== 1 ? "s" : ""} en el rango
+                            </span>
+                        )}
                     </div>
-                    {renderSaleList(pastSales)}
+                    {hasSearchedPast ? (
+                        renderSaleList(pastSales)
+                    ) : (
+                        <p className="text-slate-400 text-sm px-1">
+                            Elige un rango de fechas y presiona "Buscar" para consultar las ventas anteriores.
+                        </p>
+                    )}
                 </>
             )}
 
@@ -759,8 +787,17 @@ function DailySales() {
                             const isAboutToBePaid = currentSale?.status === "en mesa";
                             const discountPct = Math.min(100, Math.max(0, Number(discountPercentInput) || 0));
                             const finalTotal = subtotal * (1 - discountPct / 100);
-                            const cashPart = paymentType === "transferencia" ? 0 : (Number(cashAmountInput) || 0);
-                            const transferPart = paymentType === "efectivo" ? 0 : Math.max(0, finalTotal - cashPart);
+                            // Solo en "mixto" hace falta preguntar el monto en efectivo (porque
+                            // ahí sí no se sabe de antemano cuánto fue de cada tipo). En
+                            // "efectivo" se infiere que TODO fue en efectivo (= finalTotal); en
+                            // "transferencia" se infiere que nada fue en efectivo (= 0).
+                            const cashPart =
+                                paymentType === "efectivo"
+                                    ? finalTotal
+                                    : paymentType === "mixto"
+                                        ? Number(cashAmountInput) || 0
+                                        : 0;
+                            const transferPart = Math.max(0, finalTotal - cashPart);
 
                             return (
                                 <div className="bg-gray-800 border-t border-gray-700 px-6 py-4 flex flex-col gap-3 sticky bottom-0">
@@ -800,10 +837,10 @@ function DailySales() {
                                                     </select>
                                                 </div>
 
-                                                {paymentType !== "transferencia" && (
+                                                {paymentType === "mixto" && (
                                                     <div>
                                                         <label className="block text-xs text-gray-400 mb-1">
-                                                            {paymentType === "mixto" ? "Monto en efectivo" : "Monto recibido en efectivo"}
+                                                            Monto en efectivo
                                                         </label>
                                                         <input
                                                             type="number"
@@ -838,19 +875,27 @@ function DailySales() {
                                                         </span>
                                                     </p>
                                                 )}
+                                                {paymentType === "efectivo" && (
+                                                    <p>
+                                                        Se registrará como pagado 100% en efectivo:{" "}
+                                                        <span className="text-emerald-400 font-semibold">
+                                                            {new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(finalTotal)}
+                                                        </span>
+                                                    </p>
+                                                )}
+                                                {paymentType === "transferencia" && (
+                                                    <p>
+                                                        Se registrará como pagado 100% por transferencia:{" "}
+                                                        <span className="text-emerald-400 font-semibold">
+                                                            {new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(finalTotal)}
+                                                        </span>
+                                                    </p>
+                                                )}
                                                 {paymentType === "mixto" && (
                                                     <p>
                                                         Transferencia inferida (diferencia):{" "}
                                                         <span className="text-emerald-400 font-semibold">
                                                             {new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(transferPart)}
-                                                        </span>
-                                                    </p>
-                                                )}
-                                                {paymentType === "efectivo" && cashAmountInput && (
-                                                    <p>
-                                                        Vuelto:{" "}
-                                                        <span className="text-emerald-400 font-semibold">
-                                                            {new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(Math.max(0, cashPart - finalTotal))}
                                                         </span>
                                                     </p>
                                                 )}
