@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import db from '@/libs/db';
 import { nanoid } from 'nanoid';
+import { normalizeSalePayload, validateSalePayload } from '@/services/saleService';
 
 // Trae ventas dentro de un rango de fecha. Antes esta ruta calculaba
 // startOfDay/endOfDay pero nunca los usaba en el findMany, así que traía
@@ -50,16 +51,14 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const data = await request.json();
+        const payload = normalizeSalePayload(data);
+        const validationError = validateSalePayload(payload);
 
-        const {
-            tableNumber,
-            saleStatus,
-            generalObservation,
-            totalAmount,
-            products,
-            game,
-            orderType,
-        } = data;
+        if (validationError) {
+            return NextResponse.json({ message: validationError }, { status: 400 });
+        }
+
+        const { tableNumber, saleStatus, generalObservation, totalAmount, products, game, orderType } = payload;
 
         if (!products || products.length === 0) {
             return NextResponse.json({ message: 'Debe seleccionar al menos un producto' }, { status: 400 });
@@ -76,8 +75,8 @@ export async function POST(request) {
                 status: saleStatus || 'en proceso',
                 table: String(tableNumber),
                 generalObservation,
-                gameId,
-                orderType,
+                orderType: orderType || 'En mesa',
+                ...(gameId ? { game: { connect: { id: gameId } } } : {}),
             },
         });
 

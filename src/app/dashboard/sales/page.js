@@ -7,6 +7,7 @@ import ProductList from "@/components/ProductList";
 import SaleInfoFields from "@/components/SaleInfoFields";
 import TicketPreviewModal from "@/components/TicketPreviewModal";
 import useTicketPrinter from "@/hooks/useTicketPrinter";
+import { buildSaleRequestPayload } from "@/services/saleService";
 import { useRouter } from "next/navigation";
 
 
@@ -136,28 +137,16 @@ const SalesForm = ({ saleId }) => {
 
     setIsSubmitting(true);
 
-    const saleData = {
-      tableNumber: businessType === "fruver" ? "Mostrador" : tableNumber,
+    const saleData = buildSaleRequestPayload({
+      businessType,
+      products,
+      tableNumber,
       saleStatus,
       generalObservation,
       totalAmount: calculateTotal(),
-      game: businessType === "fruver" ? null : game,
+      game,
       orderType,
-      products: products.map((p) => ({
-        id: p.id,
-        quantity: p.quantity || 1,
-        observation:
-          p.observation === "" || p.observation === undefined
-            ? null
-            : p.observation,
-        additions:
-          p.additions?.map((a) => ({
-            id: a.id || a.name,
-            name: a.name,
-            price: a.price,
-          })) || [],
-      })),
-    };
+    });
 
     try {
       const url = isEditing ? `/api/sale/${saleId}` : "/api/sale";

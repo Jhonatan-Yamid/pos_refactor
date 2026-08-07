@@ -1,5 +1,11 @@
 import db from "@/libs/db";
 import { ok, fail, withErrorHandling } from "@/libs/apiResponse";
+import {
+  buildProviderCreateInput,
+  buildProviderUpdateInput,
+  normalizeProviderPayload,
+  validateProviderPayload,
+} from "@/services/providerService";
 
 export const GET = withErrorHandling(async (request) => {
   const { searchParams } = new URL(request.url);
@@ -24,13 +30,15 @@ export const GET = withErrorHandling(async (request) => {
 
 export const POST = withErrorHandling(async (request) => {
   const data = await request.json();
+  const payload = normalizeProviderPayload(data);
+  const validationError = validateProviderPayload(payload);
+
+  if (validationError) {
+    return fail(validationError, 400);
+  }
+
   const newProvider = await db.provider.create({
-    data: {
-      name: data.name,
-      description: data.description,
-      accountNumber: data.accountNumber,
-      phone: data.phone || null,
-    },
+    data: buildProviderCreateInput(payload),
   });
   return ok(newProvider, 201);
 }, "Error al crear proveedor");
@@ -43,14 +51,16 @@ export const PUT = withErrorHandling(async (request) => {
     return fail("El ID es requerido para actualizar un proveedor", 400);
   }
 
+  const payload = normalizeProviderPayload(body);
+  const validationError = validateProviderPayload(payload);
+
+  if (validationError) {
+    return fail(validationError, 400);
+  }
+
   const updatedProvider = await db.provider.update({
     where: { id },
-    data: {
-      name: body.name,
-      description: body.description,
-      accountNumber: body.accountNumber,
-      phone: body.phone || null,
-    },
+    data: buildProviderUpdateInput(payload),
   });
 
   return ok(updatedProvider);

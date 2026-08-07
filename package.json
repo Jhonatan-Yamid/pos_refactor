@@ -6,7 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run src/services/**/*.spec.{js,jsx}",
+    "coverage": "vitest run --coverage",
+    "prisma:generate:test": "cross-env DATABASE_URL_TEST=file:./dev-test.db prisma generate --schema=prisma/schema.test.prisma",
+    "prisma:push:test": "cross-env DATABASE_URL_TEST=file:./dev-test.db prisma db push --schema=prisma/schema.test.prisma",
+    "test:integration": "npm run prisma:generate:test && npm run prisma:push:test && cross-env NODE_ENV=test DATABASE_URL_TEST=file:./dev-test.db vitest run src/app/api/ingredient/ingredient.integration.spec.js src/app/api/providers/providers.integration.spec.js src/app/api/sale/sale.integration.spec.js"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0",
@@ -35,10 +42,17 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^15.0.0",
+    "@testing-library/user-event": "^14.0.0",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.3.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
+    "jsdom": "^29.1.1",
     "postcss": "^8",
     "prisma": "^5.14.0",
-    "tailwindcss": "^3.4.1"
+    "tailwindcss": "^3.4.1",
+    "vitest": "^1.6.0"
   }
 }

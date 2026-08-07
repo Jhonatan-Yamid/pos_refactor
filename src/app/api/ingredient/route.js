@@ -1,10 +1,13 @@
 import db from "@/libs/db";
 import { ok, fail, withErrorHandling } from "@/libs/apiResponse";
-
-const parseQuantity = (quantity) =>
-  quantity === "insuficiente" || quantity === null || quantity === undefined
-    ? null
-    : parseFloat(quantity);
+import {
+  buildIngredientCreateInput,
+  buildIngredientUpdateInput,
+  normalizeIngredientPayload,
+  parseIngredientQuantity,
+  validateIngredientPayload,
+  validateIngredientBulkUpdate,
+} from "@/services/ingredientService";
 
 export const GET = withErrorHandling(async () => {
   const ingredients = await db.ingredient.findMany();
@@ -13,17 +16,15 @@ export const GET = withErrorHandling(async () => {
 
 export const POST = withErrorHandling(async (request) => {
   const data = await request.json();
+  const payload = normalizeIngredientPayload(data);
+  const validationError = validateIngredientPayload(payload);
+
+  if (validationError) {
+    return fail(validationError, 400);
+  }
 
   const createdIngredient = await db.ingredient.create({
-    data: {
-      name: data.name,
-      description: data.description,
-      quantity: parseQuantity(data.quantity),
-      price: parseFloat(data.price),
-      typeUnity: data.typeUnity,
-      Origin: data.Origin,
-      providerId: data.providerId ? Number(data.providerId) : null,
-    },
+    data: buildIngredientCreateInput(payload),
   });
 
   return ok(createdIngredient, 201);
@@ -34,32 +35,28 @@ export const PUT = withErrorHandling(async (request) => {
 
   // Edición individual de un ingrediente (viene desde el formulario CRUD)
   if (data.actualizar === true) {
-    const { id, name, description, quantity, price, typeUnity, Origin, providerId } = data;
+    const payload = normalizeIngredientPayload(data);
 
-    if (!id || typeof id !== "number") {
+    if (!data.id || typeof data.id !== "number") {
       return fail("ID inválido para actualización.", 400);
     }
 
+    const validationError = validateIngredientPayload(payload);
+    if (validationError) {
+      return fail(validationError, 400);
+    }
+
     const updatedIngredient = await db.ingredient.update({
-      where: { id },
-      data: {
-        name,
-        description,
-        quantity: parseQuantity(quantity),
-        price: parseFloat(price),
-        typeUnity,
-        updatedAt: new Date(),
-        Origin,
-        providerId: providerId ? Number(providerId) : null,
-      },
+      where: { id: data.id },
+      data: buildIngredientUpdateInput(payload),
     });
 
     return ok(updatedIngredient);
   }
 
-  // Actualización masiva de inventario (viene como arreglo [{id, quantity}])
-  if (!Array.isArray(data)) {
-    return fail("Datos inválidos, se esperaba un arreglo.", 400);
+  const bulkValidationError = validateIngredientBulkUpdate(data);
+  if (bulkValidationError) {
+    return fail(bulkValidationError, 400);
   }
 
   for (const { id, quantity } of data) {
@@ -75,7 +72,7 @@ export const PUT = withErrorHandling(async (request) => {
     data.map(({ id, quantity }) =>
       db.ingredient.update({
         where: { id },
-        data: { quantity: parseQuantity(quantity), updatedAt: new Date() },
+        data: { quantity: parseIngredientQuantity(quantity), updatedAt: new Date() },
       })
     )
   );

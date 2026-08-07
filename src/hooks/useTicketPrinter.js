@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { buildPrintRequestBody } from "@/services/saleService";
 
 export default function useTicketPrinter() {
   const printTicket = useCallback(
@@ -27,37 +28,16 @@ export default function useTicketPrinter() {
           return;
         }
 
-        // 2. Enriquecer cada producto con su precio y categoría reales
-        //    (los que vienen de la instancia en el formulario a veces no tienen category)
-        const enrichedProducts = products.map((p) => {
-          const template = availableProducts.find((ap) => ap.id === p.id);
-          return {
-            id:          p.id,
-            name:        p.name        || template?.name     || "Producto",
-            price:       p.price       ?? template?.price    ?? 0,   // precio unitario
-            category:    p.category    || template?.category || "Otros",
-            quantity:    p.quantity    || 1,
-            observation: p.observation || "",
-            additions:   (p.additions  || []).map((a) => ({
-              name:  a.name,
-              price: Number(a.price) || 0,
-            })),
-          };
+        const requestBody = buildPrintRequestBody({
+          products,
+          total,
+          tableNumber,
+          game,
+          availableGames,
+          availableProducts,
+          generalObservation,
+          orderType,
         });
-
-        // 3. Nombre del juego seleccionado
-        const gameName = game
-          ? availableGames.find((g) => g.id.toString() === game)?.name || ""
-          : "";
-
-        const requestBody = {
-          products:           enrichedProducts,
-          total:              Number(total) || 0,
-          tableNumber:        tableNumber   || 0,
-          availableGames:     gameName ? [gameName] : [],
-          generalObservation: generalObservation || "",
-          orderType:          orderType          || "En mesa",
-        };
 
         // 4. Enviar al servidor de impresión
         const res = await fetch(`${printerIp}/print`, {
