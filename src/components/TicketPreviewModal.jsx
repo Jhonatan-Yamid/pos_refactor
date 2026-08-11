@@ -21,8 +21,17 @@ const TicketPreviewModal = ({
   // cuánto devolver antes de guardar — no persiste nada (eso se registra en
   // la tabla de ventas al marcar la venta como pagada, ver F5).
   const [cashReceived, setCashReceived] = useState("");
-  const receivedNumber = Number(cashReceived) || 0;
-  const changeDue = receivedNumber - total;
+  // cashReceived guarda el valor ya formateado con separadores de miles (ej: "50.000").
+  // Para operar numéricamente se limpia quitando los puntos.
+  const cashRawNumber = Number(cashReceived.replace(/\./g, "")) || 0;
+  const changeDue = cashRawNumber - total;
+
+  const handleCashReceivedChange = (e) => {
+    const raw = e.target.value.replace(/\D/g, ""); // solo dígitos
+    if (raw === "") { setCashReceived(""); return; }
+    const formatted = new Intl.NumberFormat("es-CL", { maximumFractionDigits: 0 }).format(Number(raw));
+    setCashReceived(formatted);
+  };
   // Agrupar productos iguales (igual que en DailySales)
   const grouped = [];
   products.forEach((p) => {
@@ -156,10 +165,10 @@ const TicketPreviewModal = ({
             </label>
             <div className="flex items-center gap-3">
               <input
-                type="number"
-                min="0"
+                type="text"
+                inputMode="numeric"
                 value={cashReceived}
-                onChange={(e) => setCashReceived(e.target.value)}
+                onChange={handleCashReceivedChange}
                 placeholder="0"
                 className="w-40 p-2 bg-gray-900 border border-gray-700 rounded-md text-slate-200"
               />

@@ -10,6 +10,7 @@ import { FaPrint } from "react-icons/fa";
 import { PageContainer } from "@/components/ui/Layout";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
+import { formatTicketText } from "@/services/saleService";
 
 function DailySales() {
     const { printTicket } = useTicketPrinter();
@@ -24,12 +25,24 @@ function DailySales() {
     const [showPreview, setShowPreview] = useState(false);
     const [activeTab, setActiveTab] = useState("today");
     const [selectedSaleId, setSelectedSaleId] = useState(null);
+    // cashReceived y cashAmountInput guardan el valor con separadores de miles
+    // (ej: "50.000"). Para operar numéricamente se limpian quitando los puntos.
     const [cashReceived, setCashReceived] = useState("");
+    const handleCashReceivedChange = (e) => {
+        const raw = e.target.value.replace(/\D/g, "");
+        if (raw === "") { setCashReceived(""); return; }
+        setCashReceived(new Intl.NumberFormat("es-CL", { maximumFractionDigits: 0 }).format(Number(raw)));
+    };
 
     // F5: tipo de pago + monto en efectivo cuando se marca una venta como
     // pagada. F6: % de descuento aplicado a toda la comanda en ese momento.
     const [paymentType, setPaymentType] = useState("efectivo");
     const [cashAmountInput, setCashAmountInput] = useState("");
+    const handleCashAmountChange = (e) => {
+        const raw = e.target.value.replace(/\D/g, "");
+        if (raw === "") { setCashAmountInput(""); return; }
+        setCashAmountInput(new Intl.NumberFormat("es-CL", { maximumFractionDigits: 0 }).format(Number(raw)));
+    };
     const [discountPercentInput, setDiscountPercentInput] = useState("0");
     const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
 
@@ -195,26 +208,38 @@ function DailySales() {
 
     // F2: "Compartir" también disponible desde la tabla de ventas (antes solo
     // existía dentro del formulario de creación de venta).
+    // Reutiliza formatTicketText para que el formato sea idéntico al del detalle.
     const handleShareSale = async (sale) => {
         try {
             const res = await fetch(`/api/sale/${sale.id}`);
             const data = await res.json();
-            const products = data.products || [];
+            const rawProducts = data.products || [];
 
-            let text = `Venta - Mesa ${sale.table}\n`;
-            text += `${new Date(sale.createdAt).toLocaleDateString("es-CL")} ${new Date(sale.createdAt).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}\n`;
-            text += `--------------------------\n`;
-            products.forEach((p) => {
-                text += `${p.quantity}x ${p.product?.name || "Producto"}\n`;
-                if (p.observation) text += `  Obs: ${p.observation}\n`;
-                (p.additions || []).forEach((a) => {
-                    text += `  + ${a.name}\n`;
-                });
+            // La API devuelve productos con estructura { product: { name, price, category }, quantity, observation, additions }
+            // formatTicketText espera { name, price, category, quantity, observation, additions }
+            const mappedProducts = rawProducts.map((p) => ({
+                id: p.product?.id ?? p.id,
+                name: p.product?.name || p.name || "Producto",
+                price: p.product?.price ?? p.price ?? 0,
+                category: p.product?.category || p.category || "Otros",
+                quantity: p.quantity || 1,
+                observation: p.observation || "",
+                additions: p.additions || [],
+            }));
+
+            const ticketText = formatTicketText({
+                products: mappedProducts,
+                total: sale.totalAmount,
+                tableNumber: sale.table,
+                orderType: sale.orderType || "En mesa",
+                generalObservation: data.generalObservation || sale.generalObservation || "",
+                game: sale.gameId?.toString() || "",
+                availableGames: [],
+                availableProducts: [],
+                date: new Date(sale.createdAt),
             });
-            text += `--------------------------\n`;
-            text += `TOTAL: ${new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(sale.totalAmount)}\n`;
 
-            const encoded = encodeURIComponent(text);
+            const encoded = encodeURIComponent(ticketText);
             window.open(`https://wa.me/?text=${encoded}`, "_blank");
         } catch (error) {
             console.error("Error al compartir la venta:", error);
@@ -267,7 +292,7 @@ function DailySales() {
     const handleConfirmPayment = async (sale, subtotal) => {
         const discountPct = Math.min(100, Math.max(0, Number(discountPercentInput) || 0));
         const finalTotal = subtotal * (1 - discountPct / 100);
-        const mixedCash = Number(cashAmountInput) || 0;
+        const mixedCash = Number(cashAmountInput.replace(/\./g, "")) || 0;
 
         if (paymentType === "mixto" && mixedCash <= 0) {
             alert("Ingresa el monto pagado en efectivo para un pago mixto.");
@@ -400,7 +425,11 @@ function DailySales() {
                                                 variant="success"
                                                 size="sm"
                                                 className="mt-2"
-                                                onClick={() => handleStatusAdvance(sale)}
+                                                onClick={() =>
+                                                    sale.status === "en proceso"
+                                                        ? handleStatusAdvance(sale)
+                                                        : handlePreview(sale)
+                                                }
                                             >
                                                 {sale.status === "en proceso"
                                                     ? "Orden lista"
@@ -750,13 +779,15 @@ function DailySales() {
                                 return acc + (p.price + adds) * p.quantity;
                             }, 0);
 
-                            const received = parseFloat(cashReceived || 0);
-                            const change = received - subtotal;
+                            const received = Number(cashReceived.replace(/\./g, "")) || 0;
 
                             const currentSale = sales.find((s) => s.id === selectedSaleId);
                             const isAboutToBePaid = currentSale?.status === "en mesa";
                             const discountPct = Math.min(100, Math.max(0, Number(discountPercentInput) || 0));
                             const finalTotal = subtotal * (1 - discountPct / 100);
+                            // Cuando hay descuento activo, el vuelto se calcula sobre el total final
+                            const changeBase = isAboutToBePaid ? finalTotal : subtotal;
+                            const change = received - changeBase;
                             // Solo en "mixto" hace falta preguntar el monto en efectivo (porque
                             // ahí sí no se sabe de antemano cuánto fue de cada tipo). En
                             // "efectivo" se infiere que TODO fue en efectivo (= finalTotal); en
@@ -765,7 +796,7 @@ function DailySales() {
                                 paymentType === "efectivo"
                                     ? finalTotal
                                     : paymentType === "mixto"
-                                        ? Number(cashAmountInput) || 0
+                                        ? Number(cashAmountInput.replace(/\./g, "")) || 0
                                         : 0;
                             const transferPart = Math.max(0, finalTotal - cashPart);
 
@@ -813,10 +844,11 @@ function DailySales() {
                                                             Monto en efectivo
                                                         </label>
                                                         <input
-                                                            type="number"
+                                                            type="text"
+                                                            inputMode="numeric"
                                                             value={cashAmountInput}
-                                                            onChange={(e) => setCashAmountInput(e.target.value)}
-                                                            placeholder="Ej: 30000"
+                                                            onChange={handleCashAmountChange}
+                                                            placeholder="Ej: 30.000"
                                                             className="bg-surface-hover border border-border text-content px-3 py-2 rounded-md w-32 text-right"
                                                         />
                                                     </div>
@@ -879,75 +911,68 @@ function DailySales() {
                                             >
                                                 {isConfirmingPayment ? "Guardando..." : "Confirmar pago y marcar como pagada"}
                                             </Button>
+
+                                            {/* Calculadora de vuelto dentro del flujo de pago formal */}
+                                            {(paymentType === "efectivo" || paymentType === "mixto") && (
+                                                <div className="flex items-center gap-3 pt-2 border-t border-border mt-1">
+                                                    <div>
+                                                        <label className="block text-xs text-content-muted mb-1">
+                                                            Efectivo recibido (para calcular vuelto)
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            inputMode="numeric"
+                                                            value={cashReceived}
+                                                            onChange={handleCashReceivedChange}
+                                                            placeholder="Ej: 30.000"
+                                                            className="bg-surface-hover border border-border text-content px-3 py-2 rounded-md w-36 text-right"
+                                                        />
+                                                    </div>
+                                                    {cashReceived && (
+                                                        <div className="mt-4">
+                                                            <p className={`font-semibold text-sm ${change >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                                                                {change >= 0
+                                                                    ? `Vuelto: ${new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(change)}`
+                                                                    : `Faltan: ${new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(Math.abs(change))}`}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
-                                    <div className="flex flex-col mt-2">
-                                        <label className="text-content-muted text-sm mb-1">
-                                            Monto recibido
-                                        </label>
-                                        <div className="flex items-center gap-3">
-                                            <input
-                                                type="number"
-                                                value={cashReceived}
-                                                onChange={(e) =>
-                                                    setCashReceived(e.target.value)
-                                                }
-                                                placeholder="Ej: 30000"
-                                                className="bg-surface-hover border border-border text-content px-3 py-2 rounded-md w-32 text-right"
-                                            />
-                                            <div>
-                                                <p className="text-green-400 font-semibold text-lg">
-                                                    Cambio:{" "}
-                                                    {new Intl.NumberFormat("es-CL", {
-                                                        style: "currency",
-                                                        currency: "CLP",
-                                                    }).format(change > 0 ? change : 0)}
-                                                </p>
-                                                {cashReceived && (
-                                                    <p className="text-gray-400 text-xs">
-                                                        {new Intl.NumberFormat("es-CL", {
-                                                            style: "currency",
-                                                            currency: "CLP",
-                                                        }).format(received)}{" "}
-                                                        -{" "}
-                                                        {new Intl.NumberFormat("es-CL", {
-                                                            style: "currency",
-                                                            currency: "CLP",
-                                                        }).format(subtotal)}
-                                                    </p>
-                                                )}
-                                            </div>
+                                    {/* Imprimir y compartir siempre visibles */}
+                                    <div className="flex items-center gap-3 mt-2">
+                                        <Button
+                                            variant="success"
+                                            icon={FaPrint}
+                                            onClick={() =>
+                                                printTicket({
+                                                    products: selectedProducts,
+                                                    total: subtotal,
+                                                    tableNumber: sales.find((s) => s.id === selectedSaleId)?.table,
+                                                    game: sales.find((s) => s.id === selectedSaleId)?.gameId?.toString(),
+                                                    availableGames: [],
+                                                    availableProducts: [],
+                                                    generalObservation:
+                                                        sales.find((s) => s.id === selectedSaleId)?.generalObservation,
+                                                    orderType:
+                                                        sales.find((s) => s.id === selectedSaleId)?.orderType,
+                                                })
+                                            }
+                                        >
+                                            Imprimir
+                                        </Button>
+                                        {currentSale && (
                                             <Button
-                                                variant="success"
-                                                icon={FaPrint}
-                                                onClick={() =>
-                                                    printTicket({
-                                                        products: selectedProducts,
-                                                        total: subtotal,
-                                                        tableNumber: sales.find((s) => s.id === selectedSaleId)?.table,
-                                                        game: sales.find((s) => s.id === selectedSaleId)?.gameId?.toString(),
-                                                        availableGames: [],
-                                                        availableProducts: [],
-                                                        generalObservation:
-                                                            sales.find((s) => s.id === selectedSaleId)?.generalObservation,
-                                                        orderType:
-                                                            sales.find((s) => s.id === selectedSaleId)?.orderType,
-                                                    })
-                                                }
+                                                variant="secondary"
+                                                icon={FaShareAlt}
+                                                onClick={() => handleShareSale(currentSale)}
                                             >
-                                                Imprimir
+                                                Compartir
                                             </Button>
-                                            {currentSale && (
-                                                <Button
-                                                    variant="secondary"
-                                                    icon={FaShareAlt}
-                                                    onClick={() => handleShareSale(currentSale)}
-                                                >
-                                                    Compartir
-                                                </Button>
-                                            )}
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
                             );
