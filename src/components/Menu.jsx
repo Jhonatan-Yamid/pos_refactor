@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import useBusinessType from "@/hooks/useBusinessType";
+import { getRole, ROLE_ADMIN, ROLE_EMPLOYEE, ROLE_GUEST } from "@/libs/roles";
+import RequireRole from "@/components/RequireRole";
 import Link from "next/link";
 import { IoClose } from "react-icons/io5";
 import { HiMenuAlt2 } from "react-icons/hi";
@@ -8,25 +11,7 @@ import Image from "next/image";
 
 const Menu = ({ session }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [businessType, setBusinessType] = useState("restaurant");
-
-  // Traer la configuración del negocio para aplicar la lógica de Fruver
-  useEffect(() => {
-    const fetchBusinessConfig = async () => {
-      try {
-        const res = await fetch("/api/business");
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.type) {
-            setBusinessType(data.type.toLowerCase());
-          }
-        }
-      } catch (err) {
-        console.error("Error cargando configuración de negocio:", err);
-      }
-    };
-    fetchBusinessConfig();
-  }, []);
+  const { businessType } = useBusinessType();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -37,8 +22,8 @@ const Menu = ({ session }) => {
   };
 
   // Definimos la ruta de inventario dinámicamente
-  const inventoryPath = businessType === "fruver" 
-    ? "/dashboard/ProductInventory" 
+  const inventoryPath = businessType === "fruver"
+    ? "/dashboard/ProductInventory"
     : "/dashboard/IngredientInventory";
 
   return (
@@ -73,23 +58,25 @@ const Menu = ({ session }) => {
               </>
             ) : (
               <>
-                {session?.user?.image === 1 ? (
+                <RequireRole allowed={ROLE_ADMIN} session={session}>
                   <>
                     <li><Link href="/dashboard/saleTable" className="text-white" onClick={closeMenu}>Ventas</Link></li>
                     <li><Link href="/dashboard/salesDaily" className="text-white" onClick={closeMenu}>Reportes</Link></li>
-                    
+
                     {/* Solo mostrar Ingredientes si NO es fruver */}
                     {businessType !== "fruver" && (
                       <li><Link href="/dashboard/ingredients" className="text-white" onClick={closeMenu}>Ingredientes</Link></li>
                     )}
-                    
+
                     <li><Link href="/dashboard/products" className="text-white" onClick={closeMenu}>Productos</Link></li>
                     <li><Link href={inventoryPath} className="text-white" onClick={closeMenu}>Inventario</Link></li>
                     <li><Link href="/dashboard/openChecklist" className="text-white" onClick={closeMenu}>Apertura</Link></li>
                     <li><Link href="/dashboard/providers" className="text-white" onClick={closeMenu}>Proveedores</Link></li>
                     <li><Link href="/api/auth/signout" className="text-white" onClick={closeMenu}>Logout</Link></li>
                   </>
-                ) : (
+                </RequireRole>
+
+                <RequireRole allowed={[ROLE_EMPLOYEE, ROLE_GUEST]} session={session}>
                   <>
                     <li><Link href="/dashboard/saleTable" className="text-white" onClick={closeMenu}>Ventas</Link></li>
                     <li><Link href={inventoryPath} className="text-white" onClick={closeMenu}>Inventario</Link></li>
@@ -97,7 +84,7 @@ const Menu = ({ session }) => {
                     <li><Link href="/dashboard/provider-invoice" className="text-white" onClick={closeMenu}>Facturar Proveedor</Link></li>
                     <li><Link href="/api/auth/signout" className="text-white" onClick={closeMenu}>Logout</Link></li>
                   </>
-                )}
+                </RequireRole>
               </>
             )}
           </ul>

@@ -1,20 +1,21 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import useBusinessType from "@/hooks/useBusinessType";
 import useSalesFormLogic from "@/hooks/useSalesFormLogic";
 import ProductSearch from "@/components/ProductSearch";
 import ProductList from "@/components/ProductList";
 import SaleInfoFields from "@/components/SaleInfoFields";
 import TicketPreviewModal from "@/components/TicketPreviewModal";
 import useTicketPrinter from "@/hooks/useTicketPrinter";
-import { buildSaleRequestPayload } from "@/services/saleService";
+import { buildSaleRequestPayload, validateSalePayload } from "@/services/saleService";
 import { useRouter } from "next/navigation";
 
 
 const SalesForm = ({ saleId }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [shouldPrint, setShouldPrint] = useState(false);
-  const [businessType, setBusinessType] = useState("restaurant"); // 👈 Estado para el tipo de negocio
+  const { businessType } = useBusinessType();
   const router = useRouter();
 
   const {
@@ -148,6 +149,13 @@ const SalesForm = ({ saleId }) => {
       orderType,
     });
 
+    const validationError = validateSalePayload(saleData);
+    if (validationError) {
+      setError(validationError);
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const url = isEditing ? `/api/sale/${saleId}` : "/api/sale";
       const method = isEditing ? "PUT" : "POST";
@@ -171,7 +179,7 @@ const SalesForm = ({ saleId }) => {
           tableNumber,
           game,
           availableGames,
-          availableProducts,   // ← AGREGAR ESTA LÍNEA
+          availableProducts,
           generalObservation,
           orderType,
         });
@@ -327,7 +335,7 @@ const SalesForm = ({ saleId }) => {
                 tableNumber,
                 game,
                 availableGames,
-                availableProducts,   // ← AGREGAR ESTA LÍNEA
+                availableProducts,
                 generalObservation,
                 orderType,
               })

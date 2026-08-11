@@ -24,6 +24,12 @@ export function validateSalePayload(payload) {
     }
   }
 
+  if (payload.businessType !== 'fruver') {
+    if (!payload.tableNumber || String(payload.tableNumber).trim() === '') {
+      return 'Debes ingresar un número de mesa';
+    }
+  }
+
   if (!Number.isFinite(payload.totalAmount)) {
     return 'El total de la venta debe ser un número válido.';
   }
@@ -61,6 +67,7 @@ export function buildSaleRequestPayload({
     : [];
 
   return {
+    businessType,
     tableNumber: businessType === 'fruver' ? 'Mostrador' : tableNumber,
     saleStatus,
     generalObservation,

@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { PageContainer } from "@/components/ui/Layout";
+import Button from "@/components/ui/Button";
 
 const OpenChecklist = () => {
   const checklistItems = [
@@ -40,16 +42,16 @@ const OpenChecklist = () => {
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4 text-slate-200">
+    <PageContainer>
+      <h1 className="text-2xl font-bold mb-4 text-content">
         Checklist de Apertura
       </h1>
-      <div className="relative p-4 rounded-lg border border-white bg-gray-950">
+      <div className="relative p-4 rounded-lg border border-border bg-canvas">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {checklistItems.map((item, index) => (
             <div
               key={index}
-              className="flex items-center space-x-3 p-3 rounded-lg bg-gray-800 border border-gray-700 cursor-pointer"
+              className="flex items-center space-x-3 p-3 rounded-lg bg-surface border border-border cursor-pointer"
               style={{
                 minHeight: "80px", // Altura mínima uniforme
               }}
@@ -59,11 +61,11 @@ const OpenChecklist = () => {
                 type="checkbox"
                 checked={checkedItems[index]}
                 onChange={() => toggleCheckbox(index)}
-                className="w-6 h-6 text-blue-500 border-gray-500 rounded bg-gray-700 flex-shrink-0"
+                className="w-6 h-6 text-primary border-border rounded bg-surface-hover flex-shrink-0"
               />
               <span
-                className={`text-slate-200 text-sm ${
-                  checkedItems[index] ? "line-through text-slate-400" : ""
+                className={`text-content text-sm ${
+                  checkedItems[index] ? "line-through text-content-muted" : ""
                 }`}
                 style={{
                   whiteSpace: "normal", // Permitir múltiples líneas
@@ -75,14 +77,11 @@ const OpenChecklist = () => {
             </div>
           ))}
         </div>
-        <button
-          onClick={clearChecklist}
-          className="mt-6 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
+        <Button variant="secondary" onClick={clearChecklist} className="mt-6">
           Limpiar Checklist
-        </button>
+        </Button>
       </div>
-    </div>
+    </PageContainer>
   );
 };
 

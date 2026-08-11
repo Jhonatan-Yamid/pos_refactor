@@ -3,6 +3,8 @@ import { registerServiceWorker, subscribeUser } from "@/libs/notifications";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import useBusinessType from "@/hooks/useBusinessType";
+import { getRole, ROLE_ADMIN, ROLE_EMPLOYEE } from "@/libs/roles";
 import {
   FaCashRegister,
   FaCarrot,
@@ -20,7 +22,7 @@ import {
 const DashboardPage = () => {
   const { data: session } = useSession();
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [businessType, setBusinessType] = useState("restaurant");
+  const { businessType, isLoading: businessTypeLoading } = useBusinessType();
   const [permissionStatus, setPermissionStatus] = useState(
     typeof window !== "undefined" ? Notification.permission : "default"
   );
@@ -37,22 +39,6 @@ const DashboardPage = () => {
   }, []);
 
   // Traer datos del negocio al cargar
-  useEffect(() => {
-    const fetchBusinessConfig = async () => {
-      try {
-        const res = await fetch("/api/business");
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.type) {
-            setBusinessType(data.type.toLowerCase());
-          }
-        }
-      } catch (err) {
-        console.error("Error cargando configuración de negocio:", err);
-      }
-    };
-    fetchBusinessConfig();
-  }, []);
 
   const handleSubscribe = async () => {
     try {
@@ -87,64 +73,64 @@ const DashboardPage = () => {
       label: "Ventas",
       href: "/dashboard/saleTable",
       icon: <FaCashRegister size={48} />,
-      roles: [1, null], // 1: Admin, 2: Empleado (ajustar según tu lógica)
+      roles: [ROLE_ADMIN, ROLE_EMPLOYEE],
     },
     {
       label: "Ingredientes",
       href: "/dashboard/ingredients",
       icon: <FaCarrot size={48} />,
-      roles: [1],
+      roles: [ROLE_ADMIN],
       hideIfFruver: true, // Marca para ocultar en Fruver
     },
     {
       label: "Productos",
       href: "/dashboard/products",
       icon: <FaBox size={48} />,
-      roles: [1],
+      roles: [ROLE_ADMIN],
     },
     {
       label: "Inventario",
       href: businessType === "fruver" ? "/dashboard/ProductInventory" : "/dashboard/IngredientInventory",
       icon: <FaWarehouse size={48} />,
-      roles: [1, null],
+      roles: [ROLE_ADMIN, ROLE_EMPLOYEE],
     },
     {
       label: "Apertura",
       href: "/dashboard/openChecklist",
       icon: <FaClipboardCheck size={48} />,
-      roles: [1, null],
+      roles: [ROLE_ADMIN, ROLE_EMPLOYEE],
     },
     {
       label: "Proveedores",
       href: "/dashboard/providers",
       icon: <FaTruck size={48} />,
-      roles: [1],
+      roles: [ROLE_ADMIN],
     },
     {
       label: "Alertas",
       href: "/dashboard/alerts",
       icon: <FaBell size={48} />,
-      roles: [1],
+      roles: [ROLE_ADMIN],
     },
     {
       label: "Cerrar Sesión",
       href: "/api/auth/signout",
       icon: <FaSignOutAlt size={48} />,
-      roles: [1, null],
+      roles: [ROLE_ADMIN, ROLE_EMPLOYEE],
       isAction: true,
     },
   ];
 
   // Filtrado dinámico de opciones
+  const currentRole = getRole(session);
   const menuOptions = allOptions.filter((option) => {
-    const userRole = session?.user?.image ?? null; // Tu lógica actual usa .image como rol
-    const hasRole = option.roles.includes(userRole);
-    
+    const hasRole = option.roles.includes(currentRole);
+
     // Si es fruver y la opción debe ocultarse, la quitamos
     if (businessType === "fruver" && option.hideIfFruver) {
       return false;
     }
-    
+
     return hasRole;
   });
 

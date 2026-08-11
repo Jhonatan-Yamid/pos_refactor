@@ -4,6 +4,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import Image from "next/image";
 import MenuToggle from "./Menu";
 import db from "@/libs/db"; // Importamos tu conexión a la base de datos
+import { getRole, ROLE_ADMIN, ROLE_EMPLOYEE } from "@/libs/roles";
+import NavButton from "@/components/ui/NavButton";
 
 async function Navbar() {
   const session = await getServerSession(authOptions);
@@ -24,7 +26,7 @@ async function Navbar() {
     : "/dashboard/IngredientInventory";
 
   return (
-    <nav className="flex justify-between items-center bg-gray-950 text-white px-4 md:px-12 py-2 text-sm">
+    <nav className="flex justify-between items-center bg-canvas text-content px-4 md:px-12 py-2 text-sm">
       <div className="hidden md:flex">
         <Link href="/dashboard">
           <Image
@@ -50,17 +52,12 @@ async function Navbar() {
               </Link>
             </li>
             <li>
-              <Link
-                href="/auth/login"
-                className="bg-emerald-700 text-white px-4 py-2 rounded-md hover:bg-emerald-500 transition-colors"
-              >
-                Login
-              </Link>
+              <NavButton href="/auth/login" variant="primary">Login</NavButton>
             </li>
           </>
         ) : (
           <>
-            {session?.user?.image === 1 ? (
+            {getRole(session) === ROLE_ADMIN ? (
               <>
                 <li><Link href="/dashboard/saleTable">Ventas</Link></li>
                 <li><Link href="/dashboard/salesDaily">Reportes</Link></li>
@@ -74,12 +71,7 @@ async function Navbar() {
 
                 <li><Link href="/dashboard/products">Productos</Link></li>
                 <li>
-                  <Link
-                    href="/api/auth/signout"
-                    className="bg-emerald-700 text-white px-4 py-2 rounded-md hover:bg-emerald-500 transition-colors"
-                  >
-                    Logout
-                  </Link>
+                  <NavButton href="/api/auth/signout" variant="primary">Logout</NavButton>
                 </li>
               </>
             ) : (
@@ -89,12 +81,7 @@ async function Navbar() {
                 <li><Link href="/dashboard/openChecklist">Apertura</Link></li>
                 <li><Link href="/dashboard/provider-invoice">Facturar Proveedor</Link></li>
                 <li>
-                  <Link
-                    href="/api/auth/signout"
-                    className="bg-emerald-700 text-white px-4 py-2 rounded-md hover:bg-emerald-500 transition-colors"
-                  >
-                    Logout
-                  </Link>
+                  <NavButton href="/api/auth/signout" variant="primary">Logout</NavButton>
                 </li>
               </>
             )}

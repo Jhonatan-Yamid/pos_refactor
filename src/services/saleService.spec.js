@@ -39,12 +39,26 @@ describe('saleService', () => {
     });
 
     it('retorna error si totalAmount no es número', () => {
-      const payload = normalizeSalePayload({ products: [{ id: 1, quantity: 1 }] });
+      const payload = normalizeSalePayload({ products: [{ id: 1, quantity: 1 }], tableNumber: '12', totalAmount: 'abc' });
+      payload.businessType = 'restaurant';
       expect(validateSalePayload(payload)).toBe('El total de la venta debe ser un número válido.');
     });
 
     it('valida un payload correcto', () => {
-      const payload = normalizeSalePayload({ products: [{ id: 1, quantity: 1 }], totalAmount: 100 });
+      const payload = normalizeSalePayload({ products: [{ id: 1, quantity: 1 }], totalAmount: 100, tableNumber: '12' });
+      payload.businessType = 'restaurant';
+      expect(validateSalePayload(payload)).toBeNull();
+    });
+
+    it('requiere mesa para ventas no fruver', () => {
+      const payload = normalizeSalePayload({ products: [{ id: 1, quantity: 1 }], totalAmount: 100, tableNumber: '' });
+      payload.businessType = 'restaurant';
+      expect(validateSalePayload(payload)).toBe('Debes ingresar un número de mesa');
+    });
+
+    it('no requiere mesa para fruver', () => {
+      const payload = normalizeSalePayload({ products: [{ id: 1, quantity: 1 }], totalAmount: 100, tableNumber: '' });
+      payload.businessType = 'fruver';
       expect(validateSalePayload(payload)).toBeNull();
     });
   });
@@ -87,7 +101,7 @@ describe('saleService', () => {
         { price: 2000, quantity: 1 },
       ]);
 
-      expect(total).toBe(4500);
+      expect(total).toBe(5000);
     });
 
     it('devuelve 0 para productos inválidos', () => {

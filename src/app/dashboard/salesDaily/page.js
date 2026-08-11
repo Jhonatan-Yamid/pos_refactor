@@ -19,6 +19,10 @@ import {
     FaArrowDown,
     FaMinus,
 } from "react-icons/fa";
+import { PageContainer } from "@/components/ui/Layout";
+import { Select } from "@/components/ui/FormField";
+import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
 
 export default function SalesDailyPage() {
     const [dailySales, setDailySales] = useState([]);
@@ -107,38 +111,36 @@ export default function SalesDailyPage() {
                 : "#c084fc";
 
     return (
-        <div className="p-4 sm:p-6 bg-gray-950 min-h-screen text-slate-200">
+        <PageContainer>
             {/* HEADER */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                <h1 className="text-slate-200 font-semibold text-2xl sm:text-3xl">
+                <h1 className="text-content font-semibold text-2xl sm:text-3xl">
                     Ventas Diarias
                 </h1>
 
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-2">
-                        <label className="text-slate-400 text-sm">Rango:</label>
-                        <select
+                        <label className="text-content-muted text-sm">Rango:</label>
+                        <Select
                             value={range}
                             onChange={(e) => setRange(e.target.value)}
-                            className="bg-gray-800 text-slate-200 px-3 py-2 rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm sm:text-base"
                         >
                             <option value="7">Últimos 7 días</option>
                             <option value="30">Últimos 30 días</option>
                             <option value="60">Últimos 2 meses</option>
-                        </select>
+                        </Select>
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <label className="text-slate-400 text-sm">Promedio móvil:</label>
-                        <select
+                        <label className="text-content-muted text-sm">Promedio móvil:</label>
+                        <Select
                             value={movingAvgDays}
                             onChange={(e) => setMovingAvgDays(Number(e.target.value))}
-                            className="bg-gray-800 text-slate-200 px-3 py-2 rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 text-sm sm:text-base"
                         >
                             <option value="3">3 días</option>
                             <option value="7">7 días</option>
                             <option value="14">14 días</option>
-                        </select>
+                        </Select>
                     </div>
                 </div>
             </div>
@@ -182,13 +184,13 @@ export default function SalesDailyPage() {
 
             {/* GRAFICO */}
             {loading ? (
-                <p className="text-slate-400">Cargando ventas...</p>
+                <p className="text-content-muted">Cargando ventas...</p>
             ) : dailySales.length === 0 ? (
-                <p className="text-slate-400">No hay ventas registradas.</p>
+                <p className="text-content-muted">No hay ventas registradas.</p>
             ) : (
                 <>
-                    <div className="bg-gray-900 rounded-lg p-3 sm:p-5 shadow-lg mb-8 border border-gray-700">
-                        <h2 className="text-slate-200 text-lg sm:text-xl font-semibold mb-3 sm:mb-4">
+                    <div className="bg-surface rounded-control p-3 sm:p-5 shadow-lg mb-8 border border-border">
+                        <h2 className="text-content text-lg sm:text-xl font-semibold mb-3 sm:mb-4">
                             Total de Ventas y Tendencia (Promedio {movingAvgDays} días)
                         </h2>
                         <div className="w-full h-[300px] sm:h-[400px]">
@@ -259,13 +261,13 @@ export default function SalesDailyPage() {
                     </div>
 
                     {/* TABLA DE DETALLE */}
-                    <div className="bg-gray-900 rounded-lg p-4 sm:p-6 shadow-lg border border-gray-700 overflow-x-auto">
-                        <h2 className="text-slate-200 text-lg font-semibold mb-4">
+                    <div className="bg-surface rounded-control p-4 sm:p-6 shadow-lg border border-border overflow-x-auto">
+                        <h2 className="text-content text-lg font-semibold mb-4">
                             Detalle Diario
                         </h2>
                         <table className="min-w-full border-collapse">
                             <thead>
-                                <tr className="text-slate-400 border-b border-gray-700 text-sm">
+                                <tr className="text-content-muted border-b border-border-hover text-sm">
                                     <th className="p-2 text-left">Fecha</th>
                                     <th className="p-2 text-right">Total Ventas</th>
                                     <th className="p-2 text-right">Promedio Móvil</th>
@@ -280,7 +282,7 @@ export default function SalesDailyPage() {
                                             setSelectedDay(item);
                                             setShowModal(true);
                                         }}
-                                        className={`border-b border-gray-800 hover:bg-gray-800/40 transition`}
+                                        className={`border-b border-border hover:bg-surface-hover/40 transition`}
                                     >
                                         <td className="p-2 text-sm"><b>{item.dayOfWeek}: </b>{item.date}</td>
                                         <td className="p-2 text-right text-green-400 font-semibold">
@@ -296,7 +298,7 @@ export default function SalesDailyPage() {
                                                         ? "text-green-400"
                                                         : item.variation < 0
                                                             ? "text-red-400"
-                                                            : "text-gray-400"
+                                                            : "text-content-muted"
                                                         }`}
                                                 >
                                                     {item.variation > 0 ? (
@@ -320,45 +322,35 @@ export default function SalesDailyPage() {
                 </>
             )}
             {showModal && selectedDay && (
-                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-                    <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 w-[95%] max-w-md shadow-2xl">
+                <Modal open={showModal} onClose={() => setShowModal(false)} title="División del día" maxWidth="max-w-md">
+                    <p className="text-content-muted mb-2">
+                        <b>{selectedDay.dayOfWeek}:</b> {selectedDay.date}
+                    </p>
 
-                        <h3 className="text-xl font-semibold mb-4 text-slate-200">
-                            División del día
-                        </h3>
+                    <p className="text-success text-lg font-bold mb-6">
+                        Total: {formatCurrency(selectedDay.totalSales)}
+                    </p>
 
-                        <p className="text-slate-400 mb-2">
-                            <b>{selectedDay.dayOfWeek}:</b> {selectedDay.date}
-                        </p>
+                    {(() => {
+                        const pockets = calculatePockets(selectedDay.totalSales);
+                        return (
+                            <div className="space-y-3 text-sm">
+                                <PocketRow label="Operación (65%)" value={pockets.operacion} />
+                                <PocketRow label="Arriendo (15%)" value={pockets.arriendo} />
+                                <PocketRow label="Deuda (10%)" value={pockets.deuda} />
+                                <PocketRow label="Emergencia (5%)" value={pockets.emergencia} />
+                                <PocketRow label="Socios (5%)" value={pockets.socios} />
+                            </div>
+                        );
+                    })()}
 
-                        <p className="text-green-400 text-lg font-bold mb-6">
-                            Total: {formatCurrency(selectedDay.totalSales)}
-                        </p>
-
-                        {(() => {
-                            const pockets = calculatePockets(selectedDay.totalSales);
-                            return (
-                                <div className="space-y-3 text-sm">
-                                    <PocketRow label="Operación (65%)" value={pockets.operacion} />
-                                    <PocketRow label="Arriendo (15%)" value={pockets.arriendo} />
-                                    <PocketRow label="Deuda (10%)" value={pockets.deuda} />
-                                    <PocketRow label="Emergencia (5%)" value={pockets.emergencia} />
-                                    <PocketRow label="Socios (5%)" value={pockets.socios} />
-                                </div>
-                            );
-                        })()}
-
-                        <button
-                            onClick={() => setShowModal(false)}
-                            className="mt-6 w-full bg-red-600 hover:bg-red-700 py-2 rounded-md font-semibold transition"
-                        >
-                            Cerrar
-                        </button>
-                    </div>
-                </div>
+                    <Button variant="danger" fullWidth onClick={() => setShowModal(false)} className="mt-6">
+                        Cerrar
+                    </Button>
+                </Modal>
             )}
 
-        </div>
+        </PageContainer>
     );
 }
 
@@ -373,9 +365,9 @@ function calculateMovingAverage(data, period) {
 }
 function PocketRow({ label, value }) {
     return (
-        <div className="flex justify-between bg-gray-800 px-4 py-2 rounded-md border border-gray-700">
-            <span className="text-slate-300">{label}</span>
-            <span className="font-semibold text-white">
+        <div className="flex justify-between bg-surface-hover px-4 py-2 rounded-control border border-border">
+            <span className="text-content-muted">{label}</span>
+            <span className="font-semibold text-content">
                 {formatCurrency(value)}
             </span>
         </div>

@@ -2,6 +2,7 @@
 import React, { useEffect } from "react";
 import { FaChair, FaTruck, FaGamepad, FaStickyNote } from "react-icons/fa";
 import { MdOutlineAssignmentTurnedIn } from "react-icons/md"; // Icono opcional para el estado de la venta
+import { Input, Select, Textarea } from "@/components/ui/FormField";
 
 const SaleInfoFields = ({
   tableNumber,
@@ -23,14 +24,20 @@ const SaleInfoFields = ({
   useEffect(() => {
     if (isFruver && tableNumber !== "Mostrador") {
       setTableNumber("Mostrador");
-      setOrderType("Pagado");
-      setSaleStatus("en tienda")
     }
-  }, [isFruver, tableNumber, setTableNumber, saleStatus, orderType]);
+
+    if (isFruver && orderType !== "Pagado") {
+      setOrderType("Pagado");
+    }
+
+    if (isFruver && saleStatus !== "en tienda") {
+      setSaleStatus("en tienda");
+    }
+  }, [isFruver, tableNumber, setTableNumber, orderType, setOrderType, saleStatus, setSaleStatus]);
 
   return (
-    <div className="w-full bg-[#0b0f12] border border-gray-800 rounded-2xl p-4 md:p-6 space-y-6 shadow-sm">
-      <h3 className="text-lg font-semibold text-gray-100">
+    <div className="w-full bg-surface border border-border rounded-2xl p-4 md:p-6 space-y-6 shadow-sm">
+      <h3 className="text-lg font-semibold text-content">
         Información del Pedido
       </h3>
 
@@ -38,34 +45,30 @@ const SaleInfoFields = ({
         {/* Número de Mesa - Se oculta si es fruver */}
         {!isFruver && (
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium flex items-center gap-2 text-gray-300">
-              <FaChair className="text-gray-400" />
+            <label className="text-sm font-medium flex items-center gap-2 text-content-muted">
+              <FaChair className="text-content-muted" />
               Número de Mesa <span className="text-red-400">*</span>
             </label>
 
-            <input
+            <Input
               ref={tableInputRef}
               value={tableNumber}
               onChange={(e) => setTableNumber(e.target.value)}
               placeholder="Ej: 12"
-              className="p-2.5 bg-[#050607] border border-gray-800 rounded-lg w-full 
-            focus:ring-1 focus:ring-emerald-500"
             />
           </div>
         )}
 
         {/* Tipo de Pedido */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium flex items-center gap-2 text-gray-300">
-            <FaTruck className="text-gray-400" />
+          <label className="text-sm font-medium flex items-center gap-2 text-content-muted">
+            <FaTruck className="text-content-muted" />
             Tipo de Pedido
           </label>
 
-          <select
+          <Select
             value={orderType}
             onChange={(e) => setOrderType(e.target.value)}
-            className="p-2.5 bg-[#050607] border border-gray-800 rounded-lg w-full 
-            focus:ring-1 focus:ring-emerald-500"
           >
             {isFruver ? (
               <>
@@ -79,42 +82,38 @@ const SaleInfoFields = ({
                 <option value="Mixto">Mixto</option>
               </>
             )}
-          </select>
+          </Select>
         </div>
 
         {/* 👇 NUEVO: Estado de la Venta - Se renderiza en la segunda columna SOLO si es Fruver */}
         {isFruver && (
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium flex items-center gap-2 text-gray-300">
-              <MdOutlineAssignmentTurnedIn className="text-gray-400" size={18} />
+            <label className="text-sm font-medium flex items-center gap-2 text-content-muted">
+              <MdOutlineAssignmentTurnedIn className="text-content-muted" size={18} />
               Estado de la Venta
             </label>
 
-            <select
+            <Select
               value={saleStatus || "en tienda"}
               onChange={(e) => setSaleStatus(e.target.value)}
-              className="p-2.5 bg-[#050607] border border-gray-800 rounded-lg w-full 
-              focus:ring-1 focus:ring-emerald-500"
             >
               <option value="en tienda">En tienda</option>
               <option value="domicilio">Domicilio</option>
-            </select>
+            </Select>
           </div>
         )}
 
         {/* Juegos - Se oculta si es fruver */}
         {!isFruver && (
           <div className="flex flex-col gap-1 md:col-span-2">
-            <label className="text-sm font-medium flex items-center gap-2 text-gray-300">
-              <FaGamepad className="text-gray-400" />
+            <label className="text-sm font-medium flex items-center gap-2 text-content-muted">
+              <FaGamepad className="text-content-muted" />
               Juegos de Mesa
             </label>
 
-            <select
+            <Select
               value={game}
               onChange={(e) => setGame(e.target.value)}
-              className="p-2.5 bg-[#050607] border border-gray-800 rounded-lg w-full 
-            focus:ring-1 focus:ring-emerald-500"
             >
               <option value="">Selecciona un juego</option>
               {availableGames.map((g) => (
@@ -122,24 +121,22 @@ const SaleInfoFields = ({
                   {g.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         )}
       </div>
 
       {/* Observaciones */}
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium flex items-center gap-2 text-gray-300">
-          <FaStickyNote className="text-gray-400" />
+        <label className="text-sm font-medium flex items-center gap-2 text-content-muted">
+          <FaStickyNote className="text-content-muted" />
           Observaciones Generales
         </label>
 
-        <textarea
+        <Textarea
           value={generalObservation}
           onChange={(e) => setGeneralObservation(e.target.value)}
           placeholder="Instrucciones generales para cocina o servicio..."
-          className="p-3 bg-[#050607] border border-gray-800 rounded-lg w-full min-h-[90px] 
-          focus:ring-1 focus:ring-emerald-500"
         />
       </div>
     </div>

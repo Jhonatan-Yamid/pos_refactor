@@ -1,0 +1,445 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Crear `src/components/ui/NavButton.jsx` con soporte de variantes `primary` y `ghost`": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179874563
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179885077
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179926504
+      }
+    ],
+    "2.1 Reemplazar clases hardcodeadas en el `<nav>` y links de autenticación": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179874723
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179932374
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179995518
+      }
+    ],
+    "3. Checkpoint — Verificar NavButton y Navbar": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179874967
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786180004890
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786180394486
+      }
+    ],
+    "4.1 Sustituir elementos `<input>`, `<select>` y `<textarea>` nativos por `Input`, `Select`, `Textarea` de la UI Library": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179875074
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786180413619
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786180603461
+      }
+    ],
+    "4.2 Reemplazar clases hardcodeadas en el contenedor raíz y labels": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179875249
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786180607497
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786180676248
+      }
+    ],
+    "5.1 Reemplazar el wrapper raíz y el botón nativo": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179875395
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786180416913
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786180604236
+      }
+    ],
+    "5.2 Reemplazar clases hardcodeadas en contenedor principal y tarjetas": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179875537
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786180608489
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786180676421
+      }
+    ],
+    "6. Checkpoint — Verificar SaleInfoFields y OpenChecklist": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179875675
+      },
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786180680798
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786209801272
+      }
+    ],
+    "7.1 Reemplazar clases de fondo, superficie y canvas": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179875777
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786209811698
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786210327650
+      }
+    ],
+    "7.2 Reemplazar clases de texto y borde": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179875964
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786210332947
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786212102071
+      }
+    ],
+    "8.1 Reemplazar el wrapper raíz y los selects nativos": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179876074
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786209812382
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786210328596
+      }
+    ],
+    "8.2 Reemplazar clases de texto, fondo y borde en contenedores y tabla": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179876269
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786210333872
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786212102999
+      }
+    ],
+    "8.3 Reemplazar el modal inline por el componente `Modal` y agregar `PocketRow`": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179876382
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786212109287
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786404754084
+      }
+    ],
+    "9.1 Reemplazar el wrapper raíz y los botones principales": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179876505
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786209813119
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786210329337
+      }
+    ],
+    "9.2 Reemplazar tabs de filtro y tarjetas de venta": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179876651
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786210334906
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786212104053
+      }
+    ],
+    "9.3 Reemplazar clases de texto, borde y botones de acción en tarjetas": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179876751
+      },
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786212110347
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786404761710
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786404765201
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786404793592
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786405034054
+      }
+    ],
+    "9.4 Reemplazar los modales inline por el componente `Modal`": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179876856
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786405037879
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786405513255
+      }
+    ],
+    "10. Checkpoint — Verificar todos los archivos migrados": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179876977
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786405521650
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786406421143
+      }
+    ],
+    "11.1 Crear `scripts/audit-styles.js` con los patrones de detección y lista de excepciones": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179877081
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786406426272
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786406537067
+      }
+    ],
+    "11.2 Registrar el script en `package.json`": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179877198
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786406427233
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786406538003
+      }
+    ],
+    "12.1 Ejecutar `npm run audit:styles` y corregir cualquier violación reportada": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179877313
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786406545035
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786406698112
+      }
+    ],
+    "1. Crear `NavButton.jsx` — Client Component para Navbar": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179926674
+      }
+    ],
+    "2. Migrar `Navbar.jsx` al sistema de tokens": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786179995767
+      }
+    ],
+    "4. Migrar `SaleInfoFields.jsx` — reemplazar inputs nativos por componentes de la UI Library": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786180676544
+      }
+    ],
+    "5. Migrar `openChecklist/page.jsx` — PageContainer + Button": [
+      {
+        "executionId": "a5ff8fb5-ee4c-49b5-beaa-1ee25d1d1b97",
+        "chatSessionId": "sess_dc10213c-c0a4-4699-895e-ce2ce55b997d",
+        "timestamp": 1786180676654
+      }
+    ],
+    "7. Migrar `ProductList.jsx` — solo reemplazo de tokens, sin cambio estructural": [
+      {
+        "executionId": "8192df56-0688-46cb-9eda-511368ccb564",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786212102201
+      }
+    ],
+    "8. Migrar `salesDaily/page.js` — PageContainer + Select + Modal (Recharts intacto)": [
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786404754326
+      }
+    ],
+    "9. Migrar `saleTable/page.js` — alta complejidad (PageContainer + Button + Modal)": [
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786404779720
+      },
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786405513490
+      }
+    ],
+    "11. Crear el script `StyleAuditor` y registrar el npm script": [
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786406538141
+      }
+    ],
+    "12. Verificación final con StyleAuditor": [
+      {
+        "executionId": "85f288c4-993e-4a8c-b577-635cf75c6c66",
+        "chatSessionId": "sess_bf528980-f6db-4f12-bcd7-5c19802a1773",
+        "timestamp": 1786406698258
+      }
+    ]
+  }
+}

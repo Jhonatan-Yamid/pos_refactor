@@ -3,6 +3,32 @@
 Este documento es la especificación de referencia para implementar pruebas, extraer lógica testable y preparar el refactor hacia multitenancy sin romper el comportamiento actual.
 
 ---
+## Resumen rápido
+
+- Estado actual: el repositorio ya contiene varias extracciones y tests unitarios; hay tests de integración funcionales contra SQLite.
+- Acción que realiza este archivo: reestructurar el plan en Fases + Checklist y marcar lo completado.
+
+---
+
+## Instrucciones de uso
+
+- Marca en la casilla cada tarea al completarla.
+- Si una tarea está parcialmente completada, usa `[~]` y añade una pequeña nota.
+- Revisa `Resumen de progreso` al inicio para ver lo ya realizado.
+
+---
+
+## Resumen de progreso (marcado)
+
+- [x] Extracción de `useBusinessType` y uso en `saleTable` (reemplazo de fetch directo).
+- [x] Creación de `saleFormService` y refactor de `useSalesFormLogic` para usarlo.
+- [x] Pruebas unitarias agregadas para `useBusinessType`, `saleFormService` y helpers de `saleService` (tests locales pasados).
+- [x] Configuración de pruebas de integración con SQLite y scripts `prisma:generate:test` / `prisma:push:test`.
+- [~] Refactor de `saleTable`: UI y flujos parciales usando hooks nuevos (en progreso).
+- [ ] Tests adicionales para `useSalesFormLogic` y cobertura de UI/flow en `saleTable`.
+
+Notas: las marcas se basan en las ejecuciones de `vitest` y los cambios efectuados en los hooks/services del repositorio.
+
 
 ## 1. Invariantes
 
@@ -30,6 +56,14 @@ Este documento es la especificación de referencia para implementar pruebas, ext
 - `ProviderMovement` y `Sale`/`SaleProduct`/`SaleProductAddition` existen y soportan parte de las nuevas necesidades.
 - `Sale` no tiene hoy campos de descuento ni tipo de pago; eso se debe migrar en modo aditivo.
 
+### Checklist - Auditoría del estado actual
+- [x] Existe kit UI parcial en `src/components/ui/` y `useCrud.js` (documentado parcialmente).
+- [x] `products` tiene rutas separadas; `ingredients` y `providers` usan modal — pendiente unificación.
+- [x] `src/app/dashboard/sales/page.js` contiene lógica monolítica que debe extraerse (identificado).
+- [x] `.env` tiene duplicados; hay redundancia con tabla `Business` (identificado, pendiente limpieza).
+- [x] Bug confirmado: `src/app/api/sale/route.js` (GET) calcula fechas pero no las usa — pendiente corrección.
+
+
 ---
 
 ## 3. Especificación funcional nueva
@@ -45,6 +79,40 @@ Este documento es la especificación de referencia para implementar pruebas, ext
 
 ### F3 — Cálculo de vueltos en preview del formulario de venta
 - El cálculo de cambio debe mostrarse en el preview del ticket antes de guardar.
+
+### Checklist - Especificación funcional nueva
+
+#### F1 — Edición de cantidad en el formulario de ventas
+- [ ] El campo de cantidad puede quedar vacío mientras se edita.
+- [ ] La actualización real ocurre solo en `onBlur` o `Enter`.
+- [ ] Adiciones y observaciones ligadas a la línea no se pierden por editar la cantidad.
+- [ ] Criterio de conservación de observaciones/adiciones implementado y testeado.
+
+#### F2 — Compartir por redes en tabla de ventas
+- [x] Compartir por redes también disponible desde la lista de ventas (implementación parcial: `handleShareSale` existe en `saleTable`).
+
+#### F3 — Cálculo de vueltos en preview del formulario de venta
+- [x] Cálculo mostrado en preview (ya aparece en modal de `saleTable` para ventas seleccionadas).
+
+#### F4 — Factura de proveedor para roles ≠ 1
+- [ ] Nueva sección para `User.role != 1`.
+- [ ] Selector de proveedor limita a `name` para roles restringidos.
+- [ ] Tests de autorización para la nueva sección.
+
+#### F5 — Tipo de pago con verificación visual
+- [ ] Añadir `paymentType` UI en `saleTable` y formularios.
+- [ ] Persistir `paymentType String?` y `cashAmount Float?` en `Sale` (migración Prisma aditiva).
+- [ ] Tests de validación y UI para pagos mixtos.
+
+#### F6 — Descuento porcentual
+- [ ] Soporte de `discountPercent` en `Sale` y (opcional) en `SaleProduct`.
+- [ ] UI para aplicar descuento por comanda o por producto.
+- [ ] Persistencia y pruebas que verifiquen precio final.
+
+#### F7 — Optimizar consulta del historial de ventas
+- [x] `sales table` ya revisado para no pedir todo el histórico; se implementó carga por rango (parcial).
+- [ ] Asegurar `GET /api/sale` use `createdAt` gte/lte y añadir índices si necesario.
+
 
 ### F4 — Factura de proveedor para roles ≠ 1
 - Nueva sección accesible para `User.role != 1`.
@@ -97,6 +165,15 @@ Este documento es la especificación de referencia para implementar pruebas, ext
 - Evaluar un factory CRUD para entidades simples (`ingredients`, `providers`, `products`).
 - No aplicar a `sale`, que tiene lógica de negocio propia.
 
+### Checklist - Especificación técnica
+
+- [ ] A1: Implementar selección de perfil `.env.<businessId>` y scripts `predev`.
+- [ ] A2: Adoptar patrón tabla+modal y unificar `products` con `ingredients/providers`.
+- [~] A3: Sistema de diseño: tokens iniciales creados parcialmente en `src/components/ui/`.
+- [ ] A4: Descomponer `sales/page.js` en hooks/componentes (extraer sin cambiar comportamiento primero).
+- [x] A5: Evaluación de rutas API repetitivas iniciada; no aplicar a `sale`.
+
+
 ---
 
 ## 5. Plan de trabajo y fases
@@ -106,52 +183,118 @@ Este documento es la especificación de referencia para implementar pruebas, ext
 - T0.2 Guardar un `golden master` del request de impresión real como fixture.
 - T0.3 Auditar `src/app/api/print-ticket/route.js` y documentar si está en uso.
 
+### Fase 0 — Seguridad y línea base (Checklist)
+- [x] T0.1 Inicializar git y commit del estado actual.
+- [ ] T0.2 Guardar un `golden master` del request de impresión real como fixture.
+- [ ] T0.3 Auditar `src/app/api/print-ticket/route.js` y documentar si está en uso.
+
+
 ### Fase 1 — Congelar especificación de datos
 - T1.1 Revisar y aprobar este documento.
 - T1.2 Diseñar columnas nuevas en `Sale`/`SaleProduct` para F5/F6 y migrar Prisma aditivamente.
 - T1.3 Confirmar si F4 reutiliza `ProviderMovement` o requiere campos nuevos.
 
+### Fase 1 — Congelar especificación de datos (Checklist)
+- [~] T1.1 Revisar y aprobar este documento. (revisión en curso; pendiente aprobación final)
+- [ ] T1.2 Diseñar columnas nuevas en `Sale`/`SaleProduct` para F5/F6 y preparar migración Prisma aditiva.
+- [ ] T1.3 Confirmar si F4 reutiliza `ProviderMovement` o requiere campos nuevos.
+
+
 ### Fase 2 — Infraestructura multitenant (A1)
 - Implementar selección de perfil `.env.<businessId>`.
 - Asegurar que el despliegue local/el build no requieran cambiar `.env` manualmente.
+
+### Fase 2 — Infraestructura multitenant (Checklist)
+- [ ] Implementar selección de perfil `.env.<businessId>` y documentar workflow `predev`.
+- [ ] Integrar en scripts de `npm` para desarrollo y CI.
+
 
 ### Fase 3 — Sistema de diseño (A3)
 - Consolidar tokens y el kit UI.
 - Unificar estilos en el sistema de diseño.
 
+### Fase 3 — Sistema de diseño (Checklist)
+- [~] Consolidar tokens y el kit UI (tokens iniciales presentes en `src/components/ui/`).
+- [ ] Unificar estilos en todo el repo y eliminar estilos libres donde no estén justificados.
+
+
 ### Fase 4 — CRUD estándar (A2)
 - Migrar `products` al patrón modal-en-página.
 - Unificar el hook `useCrud.js` como contrato de CRUD para entidades simples.
 
+### Fase 4 — CRUD estándar (Checklist)
+- [ ] Migrar `products` al patrón modal-en-página.
+- [ ] Documentar `useCrud.js` y adaptarlo como contrato para `ingredients/providers/products`.
+
+
 ### Fase 5 — Descomposición estructural de `sales/page.js` (A4)
 - Extraer componentes y hooks sin cambiar comportamiento.
 - Al final, comparar el payload de impresión con el golden master.
+
+### Fase 5 — Descomposición estructural de `sales/page.js` (Checklist)
+- [~] Extraer `useBusinessType`, `useTicketPrinter` y `useSalesFormLogic` (ya extraídos y usados parcialmente).
+- [ ] Extraer búsqueda de producto, línea de venta, preview, impresión y envío a API en hooks/componentes separados.
+- [ ] Comparar payload de impresión con `golden master` y documentar diferencias.
+
 
 ### Fase 6 — F1, F2, F3
 - Corregir la edición de cantidades.
 - Añadir compartir en redes desde la tabla de ventas.
 - Mostrar cálculo de vueltos en el preview antes de guardar.
 
+### Fase 6 — F1/F2/F3 (Checklist)
+- [ ] Implementar edición de cantidades con `onBlur`/`Enter` y mantener adiciones/observaciones.
+- [x] Añadir compartir en redes desde la tabla (`handleShareSale` implementado en `saleTable`).
+- [x] Mostrar cálculo de vueltos en preview (preview modal muestra cálculo en `saleTable`).
+
+
 ### Fase 7 — F5, F6
 - Implementar pagos `efectivo`/`transferencia`/`mixto`.
 - Agregar descuento porcentual en línea y por comanda.
 - Verificar el payload de impresión según la invariante 2.
 
+### Fase 7 — F5/F6 (Checklist)
+- [ ] Implementar UI y persistencia para `paymentType`, `cashAmount`.
+- [ ] Implementar `discountPercent` a nivel comanda y por producto si se decide.
+- [ ] Migraciones Prisma para nuevas columnas (aditivas) y pruebas de integración.
+
+
 ### F8 — F4
 - Agregar factura de proveedor para roles distintos de 1 con selector limitado.
+
+### Fase 8 — F4 (Checklist)
+- [ ] Añadir sección de factura de proveedor para `User.role != 1`.
+- [ ] Tests de autorización y UI restringida.
+
 
 ### F9 — F7 y optimización de queries
 - Corregir `GET /api/sale` para filtrar por fecha.
 - Revisar otras queries lentas o over-fetching.
 - Añadir índices Prisma cuando falten.
 
+### Fase 9 — Optimización (Checklist)
+- [x] Corregir consultas intensivas identificadas en `sale` (auditoría realizada; implementación parcial en `saleTable`).
+- [ ] Implementar `where: { createdAt: { gte, lte } }` en endpoints y añadir índices si necesario.
+
+
 ### F10 — API repetitivas (A5)
 - Evaluar y aplicar factory CRUD donde tenga sentido.
+
+### Fase 10 — Factory CRUD (Checklist)
+- [ ] Evaluar entidades candidatas para un factory CRUD.
+- [ ] Implementar factory y migrar endpoints simples si procede.
+
 
 ### F11 — QA final
 - Checklist de regresión manual.
 - Validar diff del payload de impresión.
 - Limpiar código muerto identificado.
+
+### Fase 11 — QA final (Checklist)
+- [ ] Ejecutar checklist de regresión manual.
+- [ ] Validar diff del payload de impresión contra `golden master`.
+- [ ] Limpiar código muerto y documentar cambios.
+
 
 ---
 
@@ -163,6 +306,14 @@ Este documento es la especificación de referencia para implementar pruebas, ext
 4. Escribir tests antes de refactorizar cada handler.
 5. Usar SQLite local y un esquema de prueba para integraciones.
 6. Mantener las rutas de producción separadas de las pruebas.
+
+### Checklist - Estrategia de pruebas
+- [x] Usar `vitest` como framework de pruebas unitarias y de contrato.
+- [x] `vitest.config.js` y `src/setupTests.js` están presentes y se usan en el repo.
+- [x] Lógica de negocio extraída a `src/services/` (varios servicios ya creados: `saleService`, `saleFormService`).
+- [x] Practica TDD/SDD aplicada: tests añadidos antes de algunos refactors (hooks/services).
+- [x] Integraciones con SQLite y `prisma/schema.test.prisma` configuradas y scripts `prisma:generate:test`/`prisma:push:test` funcionan.
+
 
 ---
 

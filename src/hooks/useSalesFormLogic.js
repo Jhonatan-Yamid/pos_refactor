@@ -6,6 +6,13 @@ import {
   calculateTotal as calculateTotalService,
   formatTicketText,
 } from "@/services/saleService";
+import {
+  fetchAvailableProducts,
+  fetchAvailableGames,
+  fetchAvailableAdditions,
+  fetchSaleById,
+  mapSaleDataToFormState,
+} from "@/services/saleFormService";
 
 const useSalesFormLogic = (saleId) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -28,50 +35,26 @@ const useSalesFormLogic = (saleId) => {
   const fetchInitialData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const productsRes = await fetch("/api/product");
-      if (!productsRes.ok) throw new Error("Error cargando productos");
-      const productsData = await productsRes.json();
-      if (!Array.isArray(productsData)) throw new Error("Formato de productos inválido");
+      const [productsData, gamesData, additionsData] = await Promise.all([
+        fetchAvailableProducts(),
+        fetchAvailableGames(),
+        fetchAvailableAdditions(),
+      ]);
+
       setAvailableProducts(productsData);
-
-      const gamesRes = await fetch("/api/game");
-      if (!gamesRes.ok) throw new Error("Error cargando juegos");
-      const gamesData = await gamesRes.json();
-      if (!Array.isArray(gamesData)) throw new Error("Formato de juegos inválido");
       setAvailableGames(gamesData);
-
-      const additionsRes = await fetch("/api/product?category=adiciones");
-      if (!additionsRes.ok) throw new Error("Error cargando adiciones");
-      const additionsData = await additionsRes.json();
-      if (!Array.isArray(additionsData)) throw new Error("Formato de adiciones inválido");
       setAvailableFetchedAdditions(additionsData);
 
       if (saleId) {
-        const numericId = Number(saleId);
-        const saleRes = await fetch(`/api/sale/${numericId}`);
-        if (!saleRes.ok) throw new Error("Error cargando venta");
-        const saleData = await saleRes.json();
+        const saleData = await fetchSaleById(saleId);
+        const mappedData = mapSaleDataToFormState(saleData);
 
-        if (!saleData?.products) throw new Error("Estructura de datos de venta inválida");
-
-        const mappedProducts = saleData.products.map((p) => ({
-          ...p,
-          additions:
-            p.additions?.map((a) => ({
-              id: a.id || a.name,
-              name: a.name,
-              price: a.price,
-            })) || [],
-          observation: p.observation || "",
-          quantity: p.quantity || 1,
-        }));
-
-        setProducts(mappedProducts);
-        setTableNumber(saleData.table?.toString() || "");
-        setSaleStatus(saleData.status || "en proceso");
-        setGeneralObservation(saleData.generalObservation || "");
-        setGame(saleData.gameId?.toString() || "");
-        setOrderType(saleData.orderType || "En mesa");
+        setProducts(mappedData.products);
+        setTableNumber(mappedData.tableNumber);
+        setSaleStatus(mappedData.saleStatus);
+        setGeneralObservation(mappedData.generalObservation);
+        setGame(mappedData.game);
+        setOrderType(mappedData.orderType);
       }
     } catch (error) {
       console.error("Error loading initial data:", error);

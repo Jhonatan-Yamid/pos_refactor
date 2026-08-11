@@ -250,7 +250,7 @@ const handleRestaurantQuantityChange = (productId, newQuantityStr) => {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-slate-200">Productos Añadidos</h3>
+      <h3 className="text-lg font-semibold text-content">Productos Añadidos</h3>
 
       {renderCategories.map(category => {
         const items = groupedProducts[category] || [];
@@ -262,19 +262,19 @@ const handleRestaurantQuantityChange = (productId, newQuantityStr) => {
         const colorClass = meta?.color || "from-gray-600 to-gray-400";
 
         return (
-          <div key={category} className="bg-[#0b0f12] border border-gray-800 rounded-xl overflow-hidden">
+          <div key={category} className="bg-canvas border border-border rounded-xl overflow-hidden">
             <button
               type="button"
               onClick={() => setOpenCategory(openCategory === category ? null : category)}
-              className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-900"
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-surface"
             >
               <div className="flex items-center gap-3">
                 <span className={`p-2 rounded-md bg-gradient-to-br ${colorClass} text-white flex items-center justify-center`}>
                   <Icon />
                 </span>
                 <div>
-                  <div className="text-sm font-semibold text-left text-slate-200">{category}</div>
-                  <div className="text-xs text-gray-400 hidden sm:block text-left text-slate-400">Agrupado — toca para expandir</div>
+                  <div className="text-sm font-semibold text-left text-content">{category}</div>
+                  <div className="text-xs text-content-muted hidden sm:block text-left">Agrupado — toca para expandir</div>
                 </div>
               </div>
 
@@ -282,7 +282,7 @@ const handleRestaurantQuantityChange = (productId, newQuantityStr) => {
                 <span className="text-xs px-2 py-1 rounded-full bg-gradient-to-r from-white/3 to-white/6 text-white/90">
                   {selectedCount} item{selectedCount > 1 ? "s" : ""}
                 </span>
-                <div className="text-gray-400">{openCategory === category ? <FaChevronUp /> : <FaChevronDown />}</div>
+                <div className="text-content-muted">{openCategory === category ? <FaChevronUp /> : <FaChevronDown />}</div>
               </div>
             </button>
 
@@ -295,15 +295,15 @@ const handleRestaurantQuantityChange = (productId, newQuantityStr) => {
 
                   return (
                     <div key={product.id} className="space-y-3">
-                      <div className="p-3 bg-gradient-to-r from-white/3 to-white/6 rounded-md border border-gray-800">
+                      <div className="p-3 bg-gradient-to-r from-white/3 to-white/6 rounded-md border border-border">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-start gap-3">
-                            <div className="w-12 h-12 rounded-md bg-gray-800 flex items-center justify-center text-lg text-white">
+                            <div className="w-12 h-12 rounded-md bg-surface-hover flex items-center justify-center text-lg text-white">
                               <Icon />
                             </div>
                             <div>
-                              <div className="font-medium text-slate-200">{product.name}</div>
-                              <div className="text-sm text-gray-400">{formatCLP(product.price)}</div>
+                              <div className="font-medium text-content">{product.name}</div>
+                              <div className="text-sm text-content-muted">{formatCLP(product.price)}</div>
                             </div>
                           </div>
 
@@ -311,14 +311,14 @@ const handleRestaurantQuantityChange = (productId, newQuantityStr) => {
                             {isFruver ? (
                               /* --- EXCLUSIVO FRUVER: Input nativo accesible decimal --- */
                               <div className="flex items-center gap-2">
-                                <label className="text-[10px] uppercase text-gray-500 font-bold">Peso/Cant:</label>
+                                <label className="text-[10px] uppercase text-content-subtle font-bold">Peso/Cant:</label>
                                 <input
                                   type="number"
                                   min="0"
                                   step="0.01"
                                   value={products.find(p => p.id === product.id)?.quantity ?? ""}
                                   onChange={(e) => handleFruverQuantityChange(product.id, e.target.value)}
-                                  className="w-24 p-2 bg-gray-900 border border-gray-700 rounded-md text-center text-emerald-400 font-bold focus:ring-1 focus:ring-emerald-500 outline-none"
+                                  className="w-24 p-2 bg-surface border border-border rounded-md text-center text-success font-bold focus:border-border-hover outline-none"
                                 />
                               </div>
                             ) : (
@@ -338,7 +338,7 @@ const handleRestaurantQuantityChange = (productId, newQuantityStr) => {
                                       handleRestaurantQuantityChange(product.id, (currentQty - 1).toString());
                                     }
                                   }}
-                                  className="w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded-md text-slate-300"
+                                  className="w-8 h-8 flex items-center justify-center bg-surface-hover hover:bg-border rounded-md text-content-muted"
                                 >
                                   -
                                 </button>
@@ -359,7 +359,7 @@ const handleRestaurantQuantityChange = (productId, newQuantityStr) => {
                                       e.target.blur();
                                     }
                                   }}
-                                  className="w-16 p-2 bg-gray-900 border border-gray-700 rounded-md text-center text-slate-200 font-bold focus:ring-1 focus:ring-slate-500 outline-none"
+                                  className="w-16 p-2 bg-surface border border-border rounded-md text-center text-content font-bold focus:border-border-hover outline-none"
                                 />
 
                                 {/* Botón Incrementar */}
@@ -372,7 +372,7 @@ const handleRestaurantQuantityChange = (productId, newQuantityStr) => {
                                     });
                                     handleRestaurantQuantityChange(product.id, (instances.length + 1).toString());
                                   }}
-                                  className="w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded-md text-slate-300"
+                                  className="w-8 h-8 flex items-center justify-center bg-surface-hover hover:bg-border rounded-md text-content-muted"
                                 >
                                   +
                                 </button>
@@ -387,11 +387,11 @@ const handleRestaurantQuantityChange = (productId, newQuantityStr) => {
                               const globalIndex = globalIndices[i];
                               const isOpen = openInstanceIndex === globalIndex;
                               return (
-                                <div key={globalIndex} className="bg-gray-900 border border-gray-800 rounded-md p-3">
+                                <div key={globalIndex} className="bg-surface border border-border rounded-md p-3">
                                   <div className="flex items-center justify-between gap-3">
                                     <div className="flex items-center gap-3">
-                                      <div className="text-sm font-medium text-slate-200">#{i + 1}</div>
-                                      <div className="text-xs text-gray-400">
+                                      <div className="text-sm font-medium text-content">#{i + 1}</div>
+                                      <div className="text-xs text-content-muted">
                                         {inst.observation ? inst.observation : "Sin observación"}
                                       </div>
                                       {inst.additions?.length > 0 && (
@@ -401,12 +401,12 @@ const handleRestaurantQuantityChange = (productId, newQuantityStr) => {
                                               +{a.name}
                                             </span>
                                           ))}
-                                          {inst.additions.length > 3 && <span className="text-xs text-gray-400">+{inst.additions.length - 3} más</span>}
+                                          {inst.additions.length > 3 && <span className="text-xs text-content-muted">+{inst.additions.length - 3} más</span>}
                                         </div>
                                       )}
                                     </div>
                                     <div className="flex items-center gap-2">
-                                      <button type="button" onClick={() => toggleInstanceOpen(globalIndex)} className="px-2 py-1 rounded-md bg-gray-800 hover:bg-gray-700 flex items-center gap-2 text-xs text-slate-300">
+                                      <button type="button" onClick={() => toggleInstanceOpen(globalIndex)} className="px-2 py-1 rounded-md bg-surface-hover hover:bg-border flex items-center gap-2 text-xs text-content-muted">
                                         {isOpen ? <><FaChevronUp /><span>Cerrar</span></> : <><FaChevronDown /><span>Abrir</span></>}
                                       </button>
                                       <button type="button" onClick={() => removeInstance(globalIndex)} className="text-red-400 hover:text-red-300 px-2" aria-label="Eliminar unidad">
@@ -417,25 +417,25 @@ const handleRestaurantQuantityChange = (productId, newQuantityStr) => {
                                   {isOpen && (
                                     <div className="mt-3 space-y-3">
                                       <div>
-                                        <label className="text-xs text-gray-400">Observaciones</label>
-                                        <textarea value={inst.observation || ""} onChange={(e) => updateObservation(globalIndex, e.target.value)} placeholder="Ej: sin cebolla, bien cocido..." className="w-full mt-1 p-2 bg-[#050607] border border-gray-800 rounded-md text-sm text-slate-200" rows={2} />
+                                        <label className="text-xs text-content-muted">Observaciones</label>
+                                        <textarea value={inst.observation || ""} onChange={(e) => updateObservation(globalIndex, e.target.value)} placeholder="Ej: sin cebolla, bien cocido..." className="w-full mt-1 p-2 bg-surface-hover border border-border rounded-md text-sm text-content" rows={2} />
                                       </div>
                                       <div>
-                                        <label className="text-xs text-gray-400">Agregar adición</label>
+                                        <label className="text-xs text-content-muted">Agregar adición</label>
                                         <input
                                           ref={(el) => { if (el) additionInputRefs.current[globalIndex] = el; }}
                                           type="text"
                                           value={inst.additionSearchTerm || additionSearch[globalIndex] || ""}
                                           onChange={(e) => handleAdditionSearch(globalIndex, e.target.value)}
                                           placeholder="Buscar adición..."
-                                          className="w-full mt-1 p-2 bg-[#050607] border border-gray-800 rounded-md text-sm text-slate-200"
+                                          className="w-full mt-1 p-2 bg-surface-hover border border-border rounded-md text-sm text-content"
                                         />
                                         {inst.additionSuggestions?.length > 0 && (
-                                          <ul className="mt-2 bg-[#060708] border border-gray-800 rounded-md max-h-44 overflow-y-auto">
+                                          <ul className="mt-2 bg-surface border border-border rounded-md max-h-44 overflow-y-auto">
                                             {inst.additionSuggestions.map(add => (
-                                              <li key={`${globalIndex}-s-${add.id}`} onClick={() => addAdditionToInstance(globalIndex, add)} className="p-2 hover:bg-gray-800 cursor-pointer flex justify-between">
-                                                <span className="text-slate-200">{add.name}</span>
-                                                <span className="text-sm text-gray-400">{formatCLP(add.price)}</span>
+                                              <li key={`${globalIndex}-s-${add.id}`} onClick={() => addAdditionToInstance(globalIndex, add)} className="p-2 hover:bg-surface-hover cursor-pointer flex justify-between">
+                                                <span className="text-content">{add.name}</span>
+                                                <span className="text-sm text-content-muted">{formatCLP(add.price)}</span>
                                               </li>
                                             ))}
                                           </ul>
@@ -444,8 +444,8 @@ const handleRestaurantQuantityChange = (productId, newQuantityStr) => {
                                       <div className="flex gap-2 flex-wrap">
                                         {inst.additions?.map((a, ai) => (
                                           <div key={`${globalIndex}-chip-${ai}`} className="flex items-center gap-2 bg-gradient-to-r from-white/5 to-white/2 px-3 py-1 rounded-full border border-white/10">
-                                            <span className="text-sm text-slate-200">{a.name}</span>
-                                            <span className="text-xs text-gray-400">{formatCLP(a.price)}</span>
+                                            <span className="text-sm text-content">{a.name}</span>
+                                            <span className="text-xs text-content-muted">{formatCLP(a.price)}</span>
                                             <button type="button" onClick={() => removeAddition(globalIndex, ai)} className="text-red-400 hover:text-red-300 text-sm"><FaTimes /></button>
                                           </div>
                                         ))}

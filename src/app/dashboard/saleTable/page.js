@@ -1,17 +1,21 @@
 "use client";
 import useTicketPrinter from "@/hooks/useTicketPrinter";
+import useBusinessType from "@/hooks/useBusinessType";
 import { useState, useEffect, useCallback } from "react";
 import { FaCashRegister, FaEdit, FaEye, FaTrashAlt, FaExchangeAlt, FaEyeSlash, FaShareAlt } from "react-icons/fa";
-import { IoClose } from "react-icons/io5";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { getRole, ROLE_ADMIN } from "@/libs/roles";
 import Link from "next/link";
 import { FaPrint } from "react-icons/fa";
+import { PageContainer } from "@/components/ui/Layout";
+import Button from "@/components/ui/Button";
+import Modal from "@/components/ui/Modal";
 
 function DailySales() {
     const { printTicket } = useTicketPrinter();
     const { data: session } = useSession();
+    const { businessType } = useBusinessType();
     const [subTab, setSubTab] = useState("pendientes");
-    const [businessType, setBusinessType] = useState("restaurant");
     const [sales, setSales] = useState([]);
     const [todaySales, setTodaySales] = useState([]);
     const [pastSales, setPastSales] = useState([]);
@@ -45,25 +49,10 @@ function DailySales() {
     const [loadingTransfers, setLoadingTransfers] = useState(false);
 
     useEffect(() => {
-        const fetchBusinessConfig = async () => {
-            try {
-                const res = await fetch("/api/business");
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && data.type) {
-                        const type = data.type.toLowerCase();
-                        setBusinessType(type);
-                        if (type === "fruver") {
-                            setSubTab("domicilios pendientes");
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error("Error cargando configuración de negocio:", err);
-            }
-        };
-        fetchBusinessConfig();
-    }, []);
+        if (businessType === "fruver") {
+            setSubTab("domicilios pendientes");
+        }
+    }, [businessType]);
 
     // Bloquear scroll del fondo al abrir modales
     useEffect(() => {
@@ -323,10 +312,10 @@ function DailySales() {
     };
 
     const renderSaleList = (salesList) => (
-        <div className="flex flex-col gap-4 border-solid border rounded-md border-gray-600 p-5">
-            <h1 className="text-slate-200 font-medium text-xl">Ventas Registradas</h1>
+        <div className="flex flex-col gap-4 border border-border-hover rounded-md p-5">
+            <h1 className="text-content font-medium text-xl">Ventas Registradas</h1>
 
-            {session?.user?.image === 1 && activeTab === "today" && (
+            {getRole(session) === ROLE_ADMIN && activeTab === "today" && (
                 <div className="text-green-300 font-bold text-lg flex items-center gap-2">
                     <span>Total de hoy:</span>
                     <span>
@@ -350,7 +339,7 @@ function DailySales() {
             )}
 
             {salesList.length === 0 ? (
-                <p className="text-slate-200">No hay ventas registradas</p>
+                <p className="text-content">No hay ventas registradas</p>
             ) : (
                 salesList.map((sale) => {
                     // Verificamos si las fechas son diferentes (con una tolerancia de 1 segundo para evitar falsos positivos por milisegundos de guardado en base de datos)
@@ -359,9 +348,9 @@ function DailySales() {
                     return (
                         <div
                             key={sale.id}
-                            className="flex items-start mb-4 cursor-pointer p-4 bg-gray-800 rounded-lg shadow-md"
+                            className="flex items-start mb-4 cursor-pointer p-4 bg-surface-hover rounded-control shadow-md"
                         >
-                            <div className="flex items-center justify-center w-14 h-14 bg-gray-700 rounded-md mr-4 flex-shrink-0 mt-1">
+                            <div className="flex items-center justify-center w-14 h-14 bg-border rounded-md mr-4 flex-shrink-0 mt-1">
                                 <FaCashRegister className="text-white" size={20} />
                             </div>
 
@@ -370,7 +359,7 @@ function DailySales() {
                                     <h3 className="text-green-400 text-4xl font-extrabold leading-none mb-2">
                                         Mesa: {sale.table}
                                     </h3>
-                                    <h2 className="text-slate-200 text-xl font-semibold flex flex-wrap items-center gap-2">
+                                    <h2 className="text-content text-xl font-semibold flex flex-wrap items-center gap-2">
                                         <span>
                                             Venta -{" "}
                                             {new Date(sale.createdAt).toLocaleDateString("es-CL")} /{" "}
@@ -386,43 +375,47 @@ function DailySales() {
                                             </span>
                                         )}
                                     </h2>
-                                    <span className="text-slate-300 text-sm">
+                                    <span className="text-content-muted text-sm">
                                         Productos: {sale.products?.length || 0}
                                     </span>
-                                    <div className="text-slate-300 text-sm">
+                                    <div className="text-content-muted text-sm">
                                         Estado: {sale.status}
                                     </div>
                                     {businessType === "fruver" ? (
                                         // Botón para Fruver: Solo aparece si el estado actual es "domicilio"
                                         sale.status?.toLowerCase() === "domicilio" && (
-                                            <button
+                                            <Button
+                                                variant="success"
+                                                size="sm"
+                                                className="mt-2"
                                                 onClick={() => handleStatusAdvance(sale)}
-                                                className="mt-2 bg-emerald-700 hover:bg-emerald-600 text-white text-sm px-3 py-1 rounded"
                                             >
                                                 Marcar como Hecho
-                                            </button>
+                                            </Button>
                                         )
                                     ) : (
                                         // 🔄 Botón original para Restaurant
                                         ["en proceso", "en mesa"].includes(sale.status) && (
-                                            <button
+                                            <Button
+                                                variant="success"
+                                                size="sm"
+                                                className="mt-2"
                                                 onClick={() => handleStatusAdvance(sale)}
-                                                className="mt-2 bg-emerald-700 hover:bg-emerald-600 text-white text-sm px-3 py-1 rounded"
                                             >
                                                 {sale.status === "en proceso"
                                                     ? "Orden lista"
                                                     : "Marcar como pagada"}
-                                            </button>
+                                            </Button>
                                         )
                                     )}
                                 </div>
 
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center mt-4 sm:mt-0 sm:ml-4 flex-shrink-0">
                                     <div className="flex items-center mb-4 sm:mb-0 mr-4">
-                                        <span className="text-slate-200 text-lg font-semibold mr-2">
+                                        <span className="text-content text-lg font-semibold mr-2">
                                             Total:
                                         </span>
-                                        <span className="text-slate-300 text-lg font-semibold">
+                                        <span className="text-content-muted text-lg font-semibold">
                                             {new Intl.NumberFormat("es-CL", {
                                                 style: "currency",
                                                 currency: "CLP",
@@ -431,7 +424,7 @@ function DailySales() {
                                     </div>
                                     <div className="flex justify-start sm:justify-end w-full sm:w-auto">
                                         <Link href={`/dashboard/sales/${sale.id}`}>
-                                            <button className="ml-4 text-gray-600 hover:text-gray-200 text-3xl">
+                                            <button className="ml-4 text-gray-400 hover:text-white text-3xl">
                                                 <FaEdit />
                                             </button>
                                         </Link>
@@ -440,7 +433,7 @@ function DailySales() {
                                                 e.stopPropagation();
                                                 handlePreview(sale);
                                             }}
-                                            className="ml-4 text-gray-600 hover:text-gray-200 text-3xl"
+                                            className="ml-4 text-gray-400 hover:text-white text-3xl"
                                         >
                                             <FaEye />
                                         </button>
@@ -449,12 +442,12 @@ function DailySales() {
                                                 e.stopPropagation();
                                                 handleShareSale(sale);
                                             }}
-                                            className="ml-4 text-gray-600 hover:text-gray-200 text-3xl"
+                                            className="ml-4 text-gray-400 hover:text-white text-3xl"
                                             title="Compartir por WhatsApp"
                                         >
                                             <FaShareAlt />
                                         </button>
-                                        {session?.user?.image === 1 && (
+                                        {getRole(session) === ROLE_ADMIN && (
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
@@ -476,22 +469,22 @@ function DailySales() {
     );
 
     return (
-        <div className="p-6 bg-gray-950 min-h-screen text-slate-200">
+        <PageContainer>
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
-                <h1 className="text-slate-200 font-semibold text-3xl">Ventas</h1>
+                <h1 className="text-content font-semibold text-3xl">Ventas</h1>
                 <div className="flex flex-col sm:flex-row gap-3">
-                    <button
+                    <Button
+                        variant="primary"
+                        icon={FaExchangeAlt}
                         onClick={handleCheckTransfers}
                         disabled={loadingTransfers}
-                        className="bg-blue-800 text-gray-200 flex items-center gap-2 rounded-md px-4 py-1 hover:bg-blue-600 hover:text-white transition-colors disabled:opacity-50"
                     >
-                        <FaExchangeAlt size={14} />
                         {loadingTransfers ? "Verificando..." : "Verificar transferencias"}
-                    </button>
+                    </Button>
                     <Link href="/dashboard/sales">
-                        <button className="bg-gray-800 text-gray-200 flex items-center rounded-md px-4 py-1 hover:bg-gray-600 hover:text-white w-full">
+                        <Button variant="secondary">
                             + Nueva venta
-                        </button>
+                        </Button>
                     </Link>
                 </div>
             </div>
@@ -499,14 +492,14 @@ function DailySales() {
             <div className="flex space-x-4 mb-6">
                 <button
                     onClick={() => setActiveTab("today")}
-                    className={`px-4 py-2 rounded-t-md ${activeTab === "today" ? "bg-gray-800 text-white" : "bg-gray-600 text-gray-300"
+                    className={`px-4 py-2 rounded-t-md ${activeTab === "today" ? "bg-primary text-white" : "bg-surface-hover text-content-muted"
                         }`}
                 >
                     Ventas de Hoy
                 </button>
                 <button
                     onClick={() => setActiveTab("past")}
-                    className={`px-4 py-2 rounded-t-md ${activeTab === "past" ? "bg-gray-800 text-white" : "bg-gray-600 text-gray-300"
+                    className={`px-4 py-2 rounded-t-md ${activeTab === "past" ? "bg-primary text-white" : "bg-surface-hover text-content-muted"
                         }`}
                 >
                     Ventas Anteriores
@@ -519,8 +512,8 @@ function DailySales() {
                         <button
                             onClick={() => setSubTab("todas")}
                             className={`px-3 py-1 rounded-full text-sm ${subTab === "todas"
-                                ? "bg-green-700 text-white"
-                                : "bg-gray-600 text-gray-200"
+                                ? "bg-primary text-white"
+                                : "bg-surface-hover text-content-muted"
                                 }`}
                         >
                             Todas
@@ -532,8 +525,8 @@ function DailySales() {
                                 <button
                                     onClick={() => setSubTab("domicilios pendientes")}
                                     className={`px-3 py-1 rounded-full text-sm ${subTab === "domilios pendientes" || subTab === "domicilios pendientes"
-                                        ? "bg-yellow-700 text-white"
-                                        : "bg-gray-600 text-gray-200"
+                                        ? "bg-primary text-white"
+                                        : "bg-surface-hover text-content-muted"
                                         }`}
                                 >
                                     Domicilios Pendientes
@@ -541,8 +534,8 @@ function DailySales() {
                                 <button
                                     onClick={() => setSubTab("domicilios hechos")}
                                     className={`px-3 py-1 rounded-full text-sm ${subTab === "domicilios hechos"
-                                        ? "bg-blue-700 text-white"
-                                        : "bg-gray-600 text-gray-200"
+                                        ? "bg-primary text-white"
+                                        : "bg-surface-hover text-content-muted"
                                         }`}
                                 >
                                     Domicilios Hechos
@@ -554,8 +547,8 @@ function DailySales() {
                                 <button
                                     onClick={() => setSubTab("pendientes")}
                                     className={`px-3 py-1 rounded-full text-sm ${subTab === "pendientes"
-                                        ? "bg-yellow-700 text-white"
-                                        : "bg-gray-600 text-gray-200"
+                                        ? "bg-primary text-white"
+                                        : "bg-surface-hover text-content-muted"
                                         }`}
                                 >
                                     En proceso / En mesa
@@ -563,8 +556,8 @@ function DailySales() {
                                 <button
                                     onClick={() => setSubTab("pagadas")}
                                     className={`px-3 py-1 rounded-full text-sm ${subTab === "pagadas"
-                                        ? "bg-blue-700 text-white"
-                                        : "bg-gray-600 text-gray-200"
+                                        ? "bg-primary text-white"
+                                        : "bg-surface-hover text-content-muted"
                                         }`}
                                 >
                                     Pagadas
@@ -596,35 +589,36 @@ function DailySales() {
                 <>
                     {/* F7: selector de rango de fecha. No se consulta nada al servidor
                         hasta que el usuario presione "Buscar" con un rango definido. */}
-                    <div className="flex flex-wrap items-end gap-3 mb-4 bg-gray-900 border border-gray-800 rounded-md p-3">
+                    <div className="flex flex-wrap items-end gap-3 mb-4 bg-surface border border-border rounded-md p-3">
                         <div>
-                            <label className="block text-xs text-gray-400 mb-1">Desde</label>
+                            <label className="block text-xs text-content-muted mb-1">Desde</label>
                             <input
                                 type="date"
                                 value={pastStartDate}
                                 max={pastEndDate || todayIso}
                                 onChange={(e) => setPastStartDate(e.target.value)}
-                                className="bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-slate-200 text-sm"
+                                className="bg-surface-hover border border-border rounded-md px-2 py-1 text-content text-sm"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs text-gray-400 mb-1">Hasta</label>
+                            <label className="block text-xs text-content-muted mb-1">Hasta</label>
                             <input
                                 type="date"
                                 value={pastEndDate}
                                 min={pastStartDate}
                                 max={todayIso}
                                 onChange={(e) => setPastEndDate(e.target.value)}
-                                className="bg-gray-800 border border-gray-700 rounded-md px-2 py-1 text-slate-200 text-sm"
+                                className="bg-surface-hover border border-border rounded-md px-2 py-1 text-content text-sm"
                             />
                         </div>
-                        <button
+                        <Button
+                            variant="success"
+                            size="sm"
                             onClick={handleSearchPastSales}
                             disabled={!pastStartDate || !pastEndDate || loadingPastSales}
-                            className="bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white text-sm px-4 py-1.5 rounded-md"
                         >
                             {loadingPastSales ? "Buscando..." : "Buscar"}
-                        </button>
+                        </Button>
                         {hasSearchedPast && !loadingPastSales && (
                             <span className="text-xs text-gray-500">
                                 {pastSales.length} venta{pastSales.length !== 1 ? "s" : ""} en el rango
@@ -634,144 +628,120 @@ function DailySales() {
                     {hasSearchedPast ? (
                         renderSaleList(pastSales)
                     ) : (
-                        <p className="text-slate-400 text-sm px-1">
-                            Elige un rango de fechas y presiona "Buscar" para consultar las ventas anteriores.
+                        <p className="text-content-muted text-sm px-1">
+                            Elige un rango de fechas y presiona &ldquo;Buscar&rdquo; para consultar las ventas anteriores.
                         </p>
                     )}
                 </>
             )}
 
             {/* Modal de transferencias */}
-            {showTransfers && (
-                <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[60]">
-                    <div className="bg-gray-900 w-full max-w-md mx-4 rounded-lg overflow-hidden border border-gray-700">
-                        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-700">
-                            <h2 className="text-white text-xl font-semibold">Últimas 3 Transferencias</h2>
-                            <button onClick={() => setShowTransfers(false)} className="text-white hover:text-gray-400">
-                                <IoClose size={24} />
-                            </button>
-                        </div>
-                        <div className="p-6 flex flex-col gap-4">
-                            {lastTransfers.length > 0 ? (
-                                lastTransfers.map((t, idx) => (
-                                    <div key={t.id_interno || idx} className="bg-gray-800 p-4 rounded-md border border-gray-700 flex justify-between items-center">
-                                        <div className="max-w-[60%]">
-                                            <p className="text-white font-bold truncate capitalize">{t.quien.toLowerCase()}</p>
-                                            <p className="text-gray-400 text-xs">{t.fecha}</p>
-                                            <p className="text-gray-500 text-[10px] truncate">{t.sujeto}</p>
-                                        </div>
-                                        <p className="text-green-400 font-bold text-lg whitespace-nowrap">
-                                            {t.monto}
-                                        </p>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-gray-400 text-center">No se encontraron transferencias recientes.</p>
-                            )}
-                        </div>
-                        <div className="p-4 bg-gray-800 text-center">
-                            <button onClick={() => setShowTransfers(false)} className="text-gray-300 hover:text-white text-sm">Cerrar</button>
-                        </div>
-                    </div>
+            <Modal open={showTransfers} onClose={() => setShowTransfers(false)} title="Últimas 3 Transferencias" maxWidth="max-w-md">
+                <div className="flex flex-col gap-4">
+                    {lastTransfers.length > 0 ? (
+                        lastTransfers.map((t, idx) => (
+                            <div key={t.id_interno || idx} className="bg-surface-hover p-4 rounded-control border border-border flex justify-between items-center">
+                                <div className="max-w-[60%]">
+                                    <p className="text-content font-bold truncate capitalize">{t.quien.toLowerCase()}</p>
+                                    <p className="text-content-muted text-xs">{t.fecha}</p>
+                                    <p className="text-content-subtle text-[10px] truncate">{t.sujeto}</p>
+                                </div>
+                                <p className="text-green-400 font-bold text-lg whitespace-nowrap">
+                                    {t.monto}
+                                </p>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-content-muted text-center">No se encontraron transferencias recientes.</p>
+                    )}
                 </div>
-            )}
+                <div className="mt-4 text-center">
+                    <Button variant="secondary" onClick={() => setShowTransfers(false)}>Cerrar</Button>
+                </div>
+            </Modal>
 
             {/* Modal de vista previa */}
-            {showPreview && (
-                <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
-                    <div className="bg-gray-900 w-full h-full max-h-screen overflow-hidden flex flex-col relative rounded-none">
-                        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-700">
-                            <h2 className="text-white text-2xl font-semibold">
-                                Vista Previa de la Comanda
-                            </h2>
-                            <button
-                                className="text-white hover:text-gray-400"
-                                onClick={closePreviewModal}
-                            >
-                                <IoClose size={32} />
-                            </button>
-                        </div>
+            <Modal open={showPreview} onClose={closePreviewModal} title="Vista Previa de la Comanda" maxWidth="max-w-3xl" fullScreen>
+                <div className="flex-1 overflow-y-auto px-6 py-4">
+                    {(() => {
+                        const grouped = [];
+                        selectedProducts.forEach((p) => {
+                            const existing = grouped.find(
+                                (g) =>
+                                    g.name === p.name &&
+                                    g.observation === p.observation &&
+                                    JSON.stringify(g.additions) ===
+                                    JSON.stringify(p.additions)
+                            );
+                            if (existing) existing.quantity += p.quantity;
+                            else grouped.push({ ...p });
+                        });
 
-                        <div className="flex-1 overflow-y-auto px-6 py-4">
-                            {(() => {
-                                const grouped = [];
-                                selectedProducts.forEach((p) => {
-                                    const existing = grouped.find(
-                                        (g) =>
-                                            g.name === p.name &&
-                                            g.observation === p.observation &&
-                                            JSON.stringify(g.additions) ===
-                                            JSON.stringify(p.additions)
-                                    );
-                                    if (existing) existing.quantity += p.quantity;
-                                    else grouped.push({ ...p });
-                                });
+                        if (grouped.length === 0)
+                            return (
+                                <p className="text-content-muted text-center mt-10">
+                                    No hay productos en esta venta
+                                </p>
+                            );
 
-                                if (grouped.length === 0)
-                                    return (
-                                        <p className="text-gray-400 text-center mt-10">
-                                            No hay productos en esta venta
+                        return (
+                            <ul className="space-y-4 pb-40">
+                                {grouped.map((product, index) => (
+                                    <li
+                                        key={index}
+                                        className="bg-surface-hover p-3 rounded-control shadow-sm border border-border"
+                                    >
+                                        <div className="flex justify-between items-center mb-2">
+                                            <h3 className="text-lg font-semibold text-content">
+                                                {product.name}
+                                            </h3>
+                                            <span className="text-sm text-content-muted">
+                                                x{product.quantity}
+                                            </span>
+                                        </div>
+
+                                        {product.observation && (
+                                            <p className="text-sm text-content-muted italic mb-1">
+                                                Obs: {product.observation}
+                                            </p>
+                                        )}
+
+                                        {product.additions?.length > 0 && (
+                                            <ul className="text-sm text-content-muted mt-1 pl-4 list-disc">
+                                                {product.additions.map((add, i) => (
+                                                    <li key={i}>
+                                                        + {add.name} (
+                                                        {new Intl.NumberFormat(
+                                                            "es-CL",
+                                                            {
+                                                                style: "currency",
+                                                                currency: "CLP",
+                                                            }
+                                                        ).format(add.price)}
+                                                        )
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+
+                                        <p className="text-right text-green-400 font-semibold mt-2">
+                                            {new Intl.NumberFormat("es-CL", {
+                                                style: "currency",
+                                                currency: "CLP",
+                                            }).format(
+                                                (product.price +
+                                                    (product.additions?.reduce(
+                                                        (sum, a) => sum + a.price,
+                                                        0
+                                                    ) || 0)) * product.quantity
+                                            )}
                                         </p>
-                                    );
-
-                                return (
-                                    <ul className="space-y-4 pb-40">
-                                        {grouped.map((product, index) => (
-                                            <li
-                                                key={index}
-                                                className="bg-gray-800 p-3 rounded-lg shadow-sm border border-gray-700"
-                                            >
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <h3 className="text-lg font-semibold text-white">
-                                                        {product.name}
-                                                    </h3>
-                                                    <span className="text-sm text-gray-400">
-                                                        x{product.quantity}
-                                                    </span>
-                                                </div>
-
-                                                {product.observation && (
-                                                    <p className="text-sm text-gray-300 italic mb-1">
-                                                        Obs: {product.observation}
-                                                    </p>
-                                                )}
-
-                                                {product.additions?.length > 0 && (
-                                                    <ul className="text-sm text-gray-400 mt-1 pl-4 list-disc">
-                                                        {product.additions.map((add, i) => (
-                                                            <li key={i}>
-                                                                + {add.name} (
-                                                                {new Intl.NumberFormat(
-                                                                    "es-CL",
-                                                                    {
-                                                                        style: "currency",
-                                                                        currency: "CLP",
-                                                                    }
-                                                                ).format(add.price)}
-                                                                )
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-
-                                                <p className="text-right text-green-400 font-semibold mt-2">
-                                                    {new Intl.NumberFormat("es-CL", {
-                                                        style: "currency",
-                                                        currency: "CLP",
-                                                    }).format(
-                                                        (product.price +
-                                                            (product.additions?.reduce(
-                                                                (sum, a) => sum + a.price,
-                                                                0
-                                                            ) || 0)) * product.quantity
-                                                    )}
-                                                </p>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                );
-                            })()}
-                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        );
+                    })()}
+                </div>
 
                         {(() => {
                             const subtotal = selectedProducts.reduce((acc, p) => {
@@ -800,9 +770,9 @@ function DailySales() {
                             const transferPart = Math.max(0, finalTotal - cashPart);
 
                             return (
-                                <div className="bg-gray-800 border-t border-gray-700 px-6 py-4 flex flex-col gap-3 sticky bottom-0">
+                                <div className="bg-surface-hover border-t border-border-hover px-6 py-4 flex flex-col gap-3 sticky bottom-0">
                                     <div className="flex justify-between items-center">
-                                        <p className="text-white font-semibold text-lg">
+                                        <p className="text-content font-semibold text-lg">
                                             Subtotal:{" "}
                                             {new Intl.NumberFormat("es-CL", {
                                                 style: "currency",
@@ -811,25 +781,25 @@ function DailySales() {
                                         </p>
 
                                         {currentSale?.status === "en proceso" && (
-                                            <button
+                                            <Button
+                                                variant="success"
                                                 onClick={() => handleStatusAdvance(currentSale)}
-                                                className="bg-emerald-700 hover:bg-emerald-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md"
                                             >
                                                 Orden lista
-                                            </button>
+                                            </Button>
                                         )}
                                     </div>
 
                                     {/* F5 + F6: tipo de pago y descuento antes de marcar como pagada */}
                                     {isAboutToBePaid && (
-                                        <div className="bg-gray-900 border border-gray-700 rounded-md p-3 flex flex-col gap-3">
+                                        <div className="bg-surface border border-border rounded-md p-3 flex flex-col gap-3">
                                             <div className="flex flex-wrap gap-4 items-end">
                                                 <div>
-                                                    <label className="block text-xs text-gray-400 mb-1">Tipo de pago</label>
+                                                    <label className="block text-xs text-content-muted mb-1">Tipo de pago</label>
                                                     <select
                                                         value={paymentType}
                                                         onChange={(e) => setPaymentType(e.target.value)}
-                                                        className="bg-gray-700 text-white px-3 py-2 rounded-md"
+                                                        className="bg-surface-hover border border-border text-content px-3 py-2 rounded-md"
                                                     >
                                                         <option value="efectivo">Efectivo</option>
                                                         <option value="transferencia">Transferencia</option>
@@ -839,7 +809,7 @@ function DailySales() {
 
                                                 {paymentType === "mixto" && (
                                                     <div>
-                                                        <label className="block text-xs text-gray-400 mb-1">
+                                                        <label className="block text-xs text-content-muted mb-1">
                                                             Monto en efectivo
                                                         </label>
                                                         <input
@@ -847,26 +817,26 @@ function DailySales() {
                                                             value={cashAmountInput}
                                                             onChange={(e) => setCashAmountInput(e.target.value)}
                                                             placeholder="Ej: 30000"
-                                                            className="bg-gray-700 text-white px-3 py-2 rounded-md w-32 text-right"
+                                                            className="bg-surface-hover border border-border text-content px-3 py-2 rounded-md w-32 text-right"
                                                         />
                                                     </div>
                                                 )}
 
                                                 <div>
-                                                    <label className="block text-xs text-gray-400 mb-1">% Descuento</label>
+                                                    <label className="block text-xs text-content-muted mb-1">% Descuento</label>
                                                     <input
                                                         type="number"
                                                         min="0"
                                                         max="100"
                                                         value={discountPercentInput}
                                                         onChange={(e) => setDiscountPercentInput(e.target.value)}
-                                                        className="bg-gray-700 text-white px-3 py-2 rounded-md w-24 text-right"
+                                                        className="bg-surface-hover border border-border text-content px-3 py-2 rounded-md w-24 text-right"
                                                     />
                                                 </div>
                                             </div>
 
                                             {/* Verificación visual antes de guardar */}
-                                            <div className="text-sm text-gray-300 space-y-1">
+                                            <div className="text-sm text-content-muted space-y-1">
                                                 {discountPct > 0 && (
                                                     <p>
                                                         Total con descuento ({discountPct}%):{" "}
@@ -901,18 +871,19 @@ function DailySales() {
                                                 )}
                                             </div>
 
-                                            <button
+                                            <Button
+                                                variant="success"
                                                 onClick={() => handleConfirmPayment(currentSale, subtotal)}
                                                 disabled={isConfirmingPayment}
-                                                className="self-start bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white font-semibold px-4 py-2 rounded-lg shadow-md"
+                                                className="self-start"
                                             >
                                                 {isConfirmingPayment ? "Guardando..." : "Confirmar pago y marcar como pagada"}
-                                            </button>
+                                            </Button>
                                         </div>
                                     )}
 
                                     <div className="flex flex-col mt-2">
-                                        <label className="text-gray-300 text-sm mb-1">
+                                        <label className="text-content-muted text-sm mb-1">
                                             Monto recibido
                                         </label>
                                         <div className="flex items-center gap-3">
@@ -923,7 +894,7 @@ function DailySales() {
                                                     setCashReceived(e.target.value)
                                                 }
                                                 placeholder="Ej: 30000"
-                                                className="bg-gray-700 text-white px-3 py-2 rounded-md w-32 text-right"
+                                                className="bg-surface-hover border border-border text-content px-3 py-2 rounded-md w-32 text-right"
                                             />
                                             <div>
                                                 <p className="text-green-400 font-semibold text-lg">
@@ -947,7 +918,9 @@ function DailySales() {
                                                     </p>
                                                 )}
                                             </div>
-                                            <button
+                                            <Button
+                                                variant="success"
+                                                icon={FaPrint}
                                                 onClick={() =>
                                                     printTicket({
                                                         products: selectedProducts,
@@ -962,27 +935,25 @@ function DailySales() {
                                                             sales.find((s) => s.id === selectedSaleId)?.orderType,
                                                     })
                                                 }
-                                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2"
                                             >
-                                                <FaPrint /> Imprimir
-                                            </button>
+                                                Imprimir
+                                            </Button>
                                             {currentSale && (
-                                                <button
+                                                <Button
+                                                    variant="secondary"
+                                                    icon={FaShareAlt}
                                                     onClick={() => handleShareSale(currentSale)}
-                                                    className="bg-gray-700 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2"
                                                 >
-                                                    <FaShareAlt /> Compartir
-                                                </button>
+                                                    Compartir
+                                                </Button>
                                             )}
                                         </div>
                                     </div>
                                 </div>
                             );
                         })()}
-                    </div>
-                </div>
-            )}
-        </div>
+            </Modal>
+        </PageContainer>
     );
 }
 
